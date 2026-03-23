@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Sự Kiện</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800 pb-20">
+    
+    <nav class="glass-header text-white px-4 py-3 shadow-lg sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto flex items-center gap-3 md:gap-4">
+            <a href="/staff/events" class="inline-flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all active:scale-95 shrink-0">
+                <i class="bi bi-arrow-left text-xl"></i>
+                <span class="text-sm font-black uppercase tracking-wider hidden md:block">Trở lại</span>
+            </a>
+            <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                <h1 class="font-black text-sm md:text-xl leading-none truncate shrink-0">Chi Tiết Sự Kiện</h1>
+                <span class="text-white/40 font-light text-xl">|</span>
+                <div class="flex items-center gap-1.5 text-teal-100 min-w-0">
+                    <i class="bi bi-info-circle-fill text-sm md:text-lg shrink-0"></i>
+                    <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest truncate"><%= event.event_name %></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto p-4 md:p-6 mt-4 space-y-6">
+        <h2 class="text-2xl font-black text-slate-900 m-0"><%= event.event_name %></h2>
+        
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="space-y-3">
+                <p class="m-0 flex items-start gap-2 text-slate-800"><i class="bi bi-geo-alt-fill text-rose-600 mt-0.5"></i> <span><b>Địa điểm:</b> <%= event.location %></span></p>
+                <p class="m-0 flex items-start gap-2 text-slate-800"><i class="bi bi-clock-fill text-amber-500 mt-0.5"></i> <span><b>Bắt đầu:</b> <%= formatDateTime(event.start_time) %></span></p>
+                <p class="m-0 flex items-start gap-2 text-slate-800"><i class="bi bi-clock-history text-blue-600 mt-0.5"></i> <span><b>Kết thúc:</b> <%= formatDateTime(event.end_time) %></span></p>
+            </div>
+            
+            <% if (event.description && event.description.trim() !== '') { %>
+                <div class="mt-4 pt-4 border-t border-dashed border-slate-200">
+                    <p class="mb-2 font-bold text-slate-900"><i class="bi bi-card-text text-emerald-600"></i> Mô tả chi tiết:</p>
+                    <div class="bg-slate-50 p-4 rounded-xl text-slate-700 whitespace-pre-line border border-slate-200"><%= event.description %></div>
+                </div>
+            <% } %>
+
+            <% if (event.drive_link && event.drive_link.trim() !== '') { %>
+                <a href="<%= event.drive_link %>" target="_blank" class="mt-4 flex items-center justify-center gap-2 w-full py-3 bg-blue-600 text-white hover:bg-blue-700 font-bold rounded-xl transition-colors">
+                    <i class="bi bi-link-45deg text-xl"></i> XEM TÀI LIỆU ĐÍNH KÈM
+                </a>
+            <% } %>
+
+            <div class="mt-4 pt-4 border-t border-dashed border-slate-200">
+                <p class="mb-2 font-bold text-slate-900">Ban tổ chức:</p>
+                <div class="space-y-2">
+                    <% managers.forEach(m => { %>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex justify-between items-center">
+                            <span class="font-bold text-slate-800 flex items-center gap-2"><i class="bi bi-person-badge-fill text-indigo-500"></i> <%= m.full_name %></span>
+                            <a href="tel:<%= m.phone_1 %>" class="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 bg-emerald-100 px-3 py-1 rounded-full transition-colors"><i class="bi bi-telephone-fill"></i> SĐT</a>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+
+        <% if (new Date(event.end_time) > now) { %>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-t-4 border-t-emerald-500">
+            <h4 class="text-emerald-700 font-black text-lg mb-4 mt-0"><i class="bi bi-person-plus-fill"></i> Mời khách tham dự</h4>
+            <form action="/staff/events/<%= event.id %>/add-customer" method="POST" class="space-y-4">
+                <select name="customer_id" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-slate-800" required>
+                    <option value="">-- Chọn khách hàng của bạn --</option>
+                    <% myCustomers.forEach(c => { %>
+                        <option value="<%= c.id %>"><%= c.full_name %></option>
+                    <% }) %>
+                </select>
+                <input type="text" name="notes" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800" placeholder="Ghi chú (VD: Ăn chay, xe đưa đón...)">
+                <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black transition-colors flex justify-center items-center gap-2 shadow-sm">
+                    XÁC NHẬN MỜI
+                </button>
+            </form>
+        </div>
+        <% } %>
+
+        <h4 class="font-black text-slate-900 m-0 mt-8 mb-4 flex items-center gap-2">
+            Danh sách đã mời <span class="bg-slate-200 text-slate-800 px-2.5 py-0.5 rounded-full text-sm"><%= participants.length %></span>
+        </h4>
+        
+        <div class="space-y-4">
+            <% participants.forEach(p => { %>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="flex justify-between items-start mb-2">
+                    <strong class="text-lg font-black text-slate-900"><%= p.full_name %></strong>
+                    <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-md"><%= formatDateTime(p.created_at) %></span>
+                </div>
+                <p class="text-slate-800 mb-4 font-bold flex items-center gap-2"><i class="bi bi-telephone-fill text-blue-600"></i> <%= p.phone_1 %></p>
+                
+                <form action="/staff/events/<%= event.id %>/update-note" method="POST" class="flex gap-2 mb-4">
+                    <input type="hidden" name="customer_id" value="<%= p.customer_id %>">
+                    <input type="text" name="notes" value="<%= p.notes %>" placeholder="Thêm ghi chú..." class="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none text-sm text-slate-900">
+                    <button type="submit" class="px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors text-sm"><i class="bi bi-check-lg"></i> Cập nhật</button>
+                </form>
+
+                <% if (new Date(event.end_time) > now) { %>
+                <form action="/staff/events/<%= event.id %>/remove-customer" method="POST" onsubmit="return confirm('Hủy tư cách khách mời này?');" class="mt-auto border-t border-dashed border-slate-200 pt-3">
+                    <input type="hidden" name="customer_id" value="<%= p.customer_id %>">
+                    <button type="submit" class="w-full py-2.5 text-rose-600 hover:bg-rose-50 font-bold rounded-xl transition-colors text-sm flex items-center justify-center gap-2">
+                        <i class="bi bi-trash3-fill"></i> Rút lại lời mời
+                    </button>
+                </form>
+                <% } %>
+            </div>
+            <% }) %>
+        </div>
+    </div>
+</body>
+</html>

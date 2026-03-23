@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Mã QR Điểm Danh - <%= event.event_name %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body class="bg-indigo-900 h-screen w-screen flex flex-col items-center justify-center overflow-hidden">
+
+    <div class="bg-white p-12 rounded-[3rem] shadow-2xl flex flex-col items-center text-center max-w-lg w-full">
+        <h1 class="text-3xl font-black text-slate-800 mb-2 uppercase tracking-tight"><%= event.event_name %></h1>
+        <p class="text-slate-500 font-bold mb-8 uppercase tracking-widest text-sm">Vui lòng dùng Camera quét mã để điểm danh</p>
+        
+        <div class="relative p-4 bg-slate-50 rounded-[2rem] border-4 border-indigo-100 shadow-inner mb-6">
+            <canvas id="qr-canvas" class="w-64 h-64"></canvas>
+            
+            <div class="absolute inset-0 border-t-2 border-indigo-500 bg-gradient-to-b from-indigo-500/20 to-transparent animate-[scan_2s_ease-in-out_infinite]"></div>
+        </div>
+
+        <p id="countdown-text" class="text-xs font-bold text-rose-500 bg-rose-50 px-4 py-2 rounded-full uppercase tracking-widest">
+            Mã sẽ làm mới sau: <span id="timer">30</span>s
+        </p>
+    </div>
+
+    <script>
+        const qr = new QRious({
+            element: document.getElementById('qr-canvas'),
+            size: 300,
+            level: 'H',
+            value: 'Đang khởi tạo mã...'
+        });
+
+        let timerInterval;
+
+        async function refreshQRCode() {
+            try {
+                const response = await fetch(`/admin/events/<%= event.id %>/refresh-qr`, { method: 'POST' });
+                const data = await response.json();
+                if (data.success) { qr.value = data.url; startCountdown(); }
+            } catch (err) { console.error(err); }
+        }
+
+        function startCountdown() {
+            clearInterval(timerInterval);
+            let timeLeft = 30; // 30 giây làm mới 1 lần
+            document.getElementById('timer').innerText = timeLeft;
+            timerInterval = setInterval(() => {
+                timeLeft--; document.getElementById('timer').innerText = timeLeft;
+                if (timeLeft <= 0) refreshQRCode();
+            }, 1000);
+        }
+        refreshQRCode();
+    </script>
+    <style>@keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }</style>
+</body>
+</html>

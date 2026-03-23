@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khách Hàng Của Tôi - FTA CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Phông chữ hiện đại và nền trang nhẹ nhàng */
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f8fafc; 
+        }
+        /* Hiệu ứng mượt mà cho Card */
+        .customer-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .customer-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+            border-color: #0d9488;
+        }
+        /* Ẩn thanh cuộn ngang */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-800 pb-20">
+    
+<nav class="glass-header text-white px-4 py-3 shadow-lg sticky top-0 z-50">
+    <div class="max-w-[1600px] mx-auto flex items-center gap-3 md:gap-4">
+        
+        <a href="/staff" class="inline-flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all active:scale-95 shrink-0">
+            <i class="bi bi-arrow-left text-xl"></i>
+            <span class="text-sm font-black uppercase tracking-wider block">Trở lại</span>
+        </a>
+
+        <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+            <h1 class="font-black text-sm md:text-xl leading-none truncate shrink-0">
+                Khách Hàng Của Tôi
+            </h1>
+            
+            <span class="text-white/40 font-light text-xl">|</span>
+            
+            <div class="flex items-center gap-1.5 text-teal-100 min-w-0">
+                <i class="bi bi-person-check-fill text-sm md:text-lg shrink-0"></i>
+                <span class="text-[9px] md:text-xs font-bold uppercase tracking-widest truncate">
+                    <%= customers.length %> Liên hệ đang quản lý
+                </span>
+            </div>
+        </div>
+
+    </div>
+</nav>
+    <div class="max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 space-y-8">
+        
+        <div class="flex overflow-x-auto no-scrollbar gap-4 pb-2">
+            <a href="/staff/survey" class="shrink-0 flex items-center gap-3 bg-teal-600 hover:bg-teal-700 text-white px-6 py-4 rounded-[1.5rem] shadow-lg shadow-teal-200 font-black text-xs uppercase tracking-widest transition-all active:scale-95">
+                <i class="bi bi-person-plus-fill text-xl"></i> Thêm Khách
+            </a>
+
+            <form action="/staff/customers/import" method="POST" enctype="multipart/form-data" class="shrink-0 flex items-center gap-3 bg-white border border-slate-200 px-3 py-2 rounded-[1.5rem] shadow-sm hover:border-teal-400 transition-all">
+                <input type="file" name="excel_file" id="excel_file" accept=".xlsx, .xls" class="hidden" onchange="this.form.submit()">
+                <label for="excel_file" class="cursor-pointer bg-emerald-100 text-emerald-600 w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-emerald-200 transition-colors">
+                    <i class="bi bi-file-earmark-excel-fill text-xl"></i>
+                </label>
+                <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest pr-2 cursor-pointer" onclick="document.getElementById('excel_file').click()">Nhập Excel</span>
+            </form>
+
+            <a href="/staff/trash" class="shrink-0 flex items-center gap-3 bg-rose-50 hover:bg-rose-100 text-rose-600 px-6 py-4 rounded-[1.5rem] font-black text-xs border border-rose-100 uppercase tracking-widest transition-all active:scale-95">
+                <i class="bi bi-trash3-fill text-xl"></i> Đã Xóa
+            </a>
+        </div>
+
+        <div class="relative group max-w-3xl mx-auto">
+            <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                <i class="bi bi-search text-slate-400 group-focus-within:text-teal-600 transition-colors text-xl"></i>
+            </div>
+            <input type="text" id="searchInput" autofocus value="<%= typeof keyword !== 'undefined' ? keyword : '' %>" 
+                   placeholder="Tìm tên hoặc số điện thoại khách hàng..." 
+                   class="w-full pl-16 pr-6 py-5 bg-white rounded-[2rem] shadow-sm border border-slate-200 focus:border-teal-500 focus:ring-8 focus:ring-teal-500/10 outline-none transition-all font-bold text-slate-700 text-lg placeholder:font-medium">
+        </div>
+
+        <% if (customers.length === 0) { %>
+            <div class="bg-white p-20 rounded-[3rem] shadow-sm border border-slate-100 text-center">
+                <div class="w-24 h-24 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center text-5xl mx-auto mb-6"><i class="bi bi-inboxes"></i></div>
+                <h3 class="text-xl font-black text-slate-800">Không có kết quả</h3>
+                <p class="text-slate-500 font-medium mt-2">Vui lòng kiểm tra lại từ khóa tìm kiếm của bạn.</p>
+            </div>
+        <% } else { %>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <% customers.forEach((cust, index) => { %>
+                <div class="customer-card bg-white p-6 rounded-[2.5rem] flex flex-col justify-between group">
+                    
+                    <div class="relative">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex gap-4 items-center">
+                                <div class="w-14 h-14 bg-gradient-to-tr from-teal-600 to-emerald-400 text-white rounded-2xl flex items-center justify-center text-xl font-black shadow-lg shadow-teal-100">
+                                    <%= cust.full_name.charAt(0).toUpperCase() %>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="font-black text-slate-900 text-lg leading-tight truncate max-w-[150px]"><%= cust.full_name %></h3>
+                                    <div class="flex items-center gap-1.5 mt-1.5">
+                                        <i class="bi bi-telephone-fill text-teal-600 text-[10px]"></i>
+                                        <span class="text-sm font-bold text-slate-500"><%= cust.phone_1 %></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-1.5">
+                                <button onclick="navigator.clipboard.writeText('<%= cust.phone_1 %>'); alert('Đã copy SĐT!');" class="w-9 h-9 flex items-center justify-center text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all" title="Copy SĐT">
+                                    <i class="bi bi-copy text-lg"></i>
+                                </button>
+                                <a href="/staff/customers/edit/<%= cust.id %>" class="w-9 h-9 flex items-center justify-center text-amber-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all" title="Sửa thông tin">
+                                    <i class="bi bi-pencil-square text-lg"></i>
+                                </a>
+                                <form action="/staff/customers/delete/<%= cust.id %>" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách hàng này?');" class="m-0">
+                                    <button type="submit" class="w-9 h-9 flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Xóa">
+                                        <i class="bi bi-trash3-fill text-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-1.5 mb-6 min-h-[30px]">
+                           <% if (cust.tag_names) { 
+                                let names = cust.tag_names.split(',');
+                                let colors = cust.tag_colors.split(',');
+                                names.forEach((name, index) => { 
+                                    let cleanColor = (colors[index] && colors[index].trim() !== '') ? colors[index].trim() : '#64748b';
+                            %>
+                                <span class="px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest text-white shadow-sm" style="background: <%= cleanColor %>;">
+                                    <%= name.trim() %>
+                                </span>
+                            <%  }); 
+                             } else { %>
+                                <span class="text-slate-300 text-[9px] font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-xl border border-slate-100 italic">Chưa gắn tag</span>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto space-y-2.5">
+                        <a href="/staff/customers/<%= cust.id %>" class="w-full bg-slate-900 hover:bg-teal-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex justify-center items-center gap-3 shadow-lg active:scale-95">
+                            <i class="bi bi-journal-text text-xl"></i> Nhật ký chăm sóc
+                        </a>
+                        
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <a href="/staff/customers/<%= cust.id %>/tags" class="bg-white hover:bg-teal-50 text-slate-600 border border-slate-200 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex justify-center items-center gap-2 active:scale-95">
+                                <i class="bi bi-tags-fill text-teal-500"></i> Gắn Tag
+                            </a>
+                            <a href="/staff/customers/<%= cust.id %>/invite" class="bg-amber-400 hover:bg-amber-500 text-white py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex justify-center items-center gap-2 shadow-md shadow-amber-100 active:scale-95">
+                                <i class="bi bi-calendar-star-fill"></i> Sự kiện
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+            </div>
+        <% } %>
+    </div>
+
+    <script>
+        let timeout = null;
+        const searchInput = document.getElementById('searchInput');
+
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const keyword = e.target.value.trim();
+                window.location.href = `/staff/customers?q=${encodeURIComponent(keyword)}`;
+            }, 600); 
+        });
+        
+        // Luôn giữ con trỏ ở cuối văn bản khi trang load lại
+        if (searchInput.value) {
+            const val = searchInput.value;
+            searchInput.value = '';
+            searchInput.value = val;
+            searchInput.focus();
+        }
+    </script>
+</body>
+</html>

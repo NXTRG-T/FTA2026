@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Nâng Cao - FTA CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { width: 4px; }
+        .no-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .no-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .no-scrollbar:hover::-webkit-scrollbar-thumb { background: #94a3b8; }
+        
+        /* Tối ưu in ấn */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .glass-card { box-shadow: none !important; border: 1px solid #000 !important; padding: 0 !important; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #ddd !important; padding: 8px !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 pb-20">
+
+    <div class="max-w-[1440px] mx-auto p-4 md:p-6 md:pt-8">
+        
+        <div class="mb-4 no-print">
+            <a href="/admin/dashboard" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
+                <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Về Dashboard
+            </a>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 bg-white p-5 md:p-6 rounded-[2rem] shadow-sm border border-slate-200 no-print">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight m-0 flex items-center gap-2">
+                    <i class="bi bi-bar-chart-line-fill text-indigo-500"></i> Báo Cáo Thống Kê
+                </h2>
+                <p class="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-1 m-0">Truy xuất & Phân tích dữ liệu toàn hệ thống</p>
+            </div>
+            
+            <div class="flex items-center gap-2 shrink-0">
+                <select id="export-limit" class="px-3 py-3 h-[48px] bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm">
+                    <option value="all">Tải Tất Cả</option>
+                    <option value="10">10 Dòng</option>
+                    <option value="50">50 Dòng</option>
+                    <option value="100">100 Dòng</option>
+                </select>
+                <button onclick="exportToExcel()" class="px-5 md:px-6 py-3 h-[48px] bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-emerald-200 hover:-translate-y-1">
+                    <i class="bi bi-file-earmark-spreadsheet-fill text-base"></i> <span class="hidden sm:inline">Xuất Excel</span>
+                </button>
+            </div>
+        </div>
+
+        <form action="/admin/reports" method="GET" class="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-200 mb-8 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                <div class="space-y-2 relative" data-dropdown="true">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Cấu hình cột</label>
+                    <div class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 flex justify-between items-center cursor-pointer hover:bg-indigo-50 transition-all" onclick="toggleDropdown('col-dropdown')">
+                        <span id="col-count-text">Đã chọn (<%= show_cols.length %>)</span>
+                        <i class="bi bi-chevron-down text-indigo-500"></i>
+                    </div>
+                    <div id="col-dropdown" class="hidden absolute top-[105%] left-0 w-full bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-xl z-50 p-3 space-y-1">
+                        <% const cols = [['created_at','Ngày tạo'], ['full_name','Khách hàng'], ['phone_1','SĐT'], ['staff_name','Nhân viên'], ['tag_names','Phân loại']] %>
+                        <% cols.forEach(c => { %>
+                            <label class="flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl hover:bg-indigo-50 transition-colors">
+                                <input type="checkbox" name="show_cols" value="<%= c[0] %>" <%= show_cols.includes(c[0]) ? 'checked' : '' %> onchange="updateCounter('show_cols', 'col-count-text', 'Đã chọn')" class="w-5 h-5 text-indigo-600 rounded-lg border-slate-300 focus:ring-indigo-500">
+                                <span class="text-sm font-bold text-slate-700"><%= c[1] %></span>
+                            </label>
+                        <% }) %>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Tìm kiếm nhanh</label>
+                    <input type="text" name="keyword" value="<%= query.keyword || '' %>" placeholder="Tên hoặc Số ĐT..." 
+                           class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-slate-400">
+                </div>
+
+                <div class="space-y-2 relative" data-dropdown="true">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Nhân sự phụ trách</label>
+                    <div class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 flex justify-between items-center cursor-pointer hover:bg-indigo-50 transition-all" onclick="toggleDropdown('staff-dropdown')">
+                        <span id="staff-count-text"><%= query.staff_ids.length > 0 ? `Đã chọn (${query.staff_ids.length})` : 'Tất cả nhân sự' %></span>
+                        <i class="bi bi-chevron-down text-indigo-500"></i>
+                    </div>
+                    <div id="staff-dropdown" class="hidden absolute top-[105%] left-0 w-full min-w-[250px] bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl z-50 p-3">
+                        <div class="relative mb-2">
+                            <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" placeholder="Tìm tên nhân sự..." onkeyup="filterList(this, 'staff-list')" class="w-full pl-9 pr-3 py-2 bg-slate-100 border-none rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-400 outline-none">
+                        </div>
+                        <div id="staff-list" class="max-h-48 overflow-y-auto no-scrollbar space-y-1">
+                            <% staffList.forEach(s => { %>
+                                <label class="flex items-center gap-3 px-3 py-2 cursor-pointer rounded-xl hover:bg-indigo-50 transition-colors">
+                                    <input type="checkbox" name="staff_ids" value="<%= s.id %>" <%= query.staff_ids.includes(String(s.id)) ? 'checked' : '' %> onchange="updateCounter('staff_ids', 'staff-count-text', 'Tất cả nhân sự')" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                                    <span class="text-sm font-bold text-slate-700"><%= s.full_name %></span>
+                                </label>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2 relative" data-dropdown="true">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Phân loại thẻ (Tag)</label>
+                    <div class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 flex justify-between items-center cursor-pointer hover:bg-indigo-50 transition-all" onclick="toggleDropdown('tag-dropdown')">
+                        <span id="tag-count-text"><%= query.tag_ids.length > 0 ? `Đã chọn (${query.tag_ids.length})` : 'Tất cả phân loại' %></span>
+                        <i class="bi bi-chevron-down text-indigo-500"></i>
+                    </div>
+                    <div id="tag-dropdown" class="hidden absolute top-[105%] left-0 w-full min-w-[250px] bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl z-50 p-3">
+                        <div class="relative mb-2">
+                            <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" placeholder="Tìm tên thẻ..." onkeyup="filterList(this, 'tag-list')" class="w-full pl-9 pr-3 py-2 bg-slate-100 border-none rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-400 outline-none">
+                        </div>
+                        <div id="tag-list" class="max-h-48 overflow-y-auto no-scrollbar space-y-1">
+                            <% tagList.forEach(t => { %>
+                                <label class="flex items-center gap-3 px-3 py-2 cursor-pointer rounded-xl hover:bg-indigo-50 transition-colors">
+                                    <input type="checkbox" name="tag_ids" value="<%= t.id %>" <%= query.tag_ids.includes(String(t.id)) ? 'checked' : '' %> onchange="updateCounter('tag_ids', 'tag-count-text', 'Tất cả phân loại')" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500">
+                                    <span class="text-sm font-bold text-slate-700"><%= t.tag_name %></span>
+                                </label>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-end gap-2">
+                    <button type="submit" title="Áp dụng bộ lọc" class="flex-1 py-4 h-[56px] bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-md shadow-indigo-200 hover:scale-[1.02] active:scale-95 transition-all flex justify-center items-center gap-2">
+                        Truy xuất <i class="bi bi-funnel-fill"></i>
+                    </button>
+                    <a href="/admin/reports" title="Xóa bộ lọc" class="flex-none w-[56px] h-[56px] bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-rose-500 rounded-2xl font-black transition-all flex justify-center items-center active:scale-95">
+                        <i class="bi bi-arrow-counterclockwise text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 no-print">
+            <h4 class="text-slate-800 font-black flex items-center gap-2 m-0">
+                Kết quả tìm kiếm: <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm"><%= customers.length %> Khách</span>
+            </h4>
+            
+            <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                <label for="display-limit" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hiển thị:</label>
+                <select id="display-limit" onchange="updateTableDisplay()" class="bg-transparent text-sm font-bold text-indigo-600 outline-none cursor-pointer">
+                    <option value="10" selected>10 hàng</option>
+                    <option value="20">20 hàng</option>
+                    <option value="50">50 hàng</option>
+                    <option value="100">100 hàng</option>
+                    <option value="all">Tất cả</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm glass-card">
+            <div class="overflow-x-auto">
+                <table id="reportTable" class="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                            <th class="px-6 py-5 pl-8">STT</th>
+                            <% if(show_cols.includes('created_at')) { %> <th class="px-6 py-5">Ngày tạo</th> <% } %>
+                            <% if(show_cols.includes('full_name')) { %> <th class="px-6 py-5">Khách hàng</th> <% } %>
+                            <% if(show_cols.includes('phone_1')) { %> <th class="px-6 py-5">Số điện thoại</th> <% } %>
+                            <% if(show_cols.includes('staff_name')) { %> <th class="px-6 py-5">Nhân viên</th> <% } %>
+                            <% if(show_cols.includes('tag_names')) { %> <th class="px-6 py-5">Phân loại</th> <% } %>
+                            <th class="px-6 py-5 pr-8 text-right ignore-export no-print">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <% if(customers.length === 0) { %>
+                            <tr>
+                                <td colspan="10" class="px-6 py-10 text-center text-slate-400 font-bold italic ignore-export">
+                                    Không có dữ liệu phù hợp với bộ lọc hiện tại.
+                                </td>
+                            </tr>
+                        <% } else { %>
+                            <% customers.forEach((cust, index) => { %>
+                                <tr class="data-row hover:bg-indigo-50/30 transition-colors group">
+                                    <td class="px-6 py-5 pl-8 text-sm font-bold text-slate-400"><%= index + 1 %></td>
+                                    
+                                    <% if(show_cols.includes('created_at')) { %> 
+                                        <td class="px-6 py-5 text-sm font-bold text-slate-500"><%= formatDateTime(cust.created_at) %></td> 
+                                    <% } %> 
+                                    
+                                    <% if(show_cols.includes('full_name')) { %> 
+                                        <td class="px-6 py-5 text-sm font-black text-slate-900"><%= cust.full_name %></td> 
+                                    <% } %>
+                                    
+                                    <% if(show_cols.includes('phone_1')) { %> 
+                                        <td class="px-6 py-5 text-sm font-bold text-indigo-600"><%= cust.phone_1 %></td> 
+                                    <% } %>
+                                    
+                                    <% if(show_cols.includes('staff_name')) { %> 
+                                        <td class="px-6 py-5 text-sm font-bold text-slate-700 uppercase tracking-tighter"><%= cust.staff_name || 'Hệ thống' %></td> 
+                                    <% } %>
+                                    
+                                    <% if(show_cols.includes('tag_names')) { %> 
+                                        <td class="px-6 py-5">
+                                            <div class="flex flex-wrap gap-1.5">
+                                                <% if(cust.tag_names) { 
+                                                    let names = cust.tag_names.split(',');
+                                                    let colors = cust.tag_colors.split(',');
+                                                    names.forEach((name, i) => { %>
+                                                    <span class="px-2.5 py-1 rounded-lg text-[9px] font-black text-white uppercase shadow-sm" style="background: <%= colors[i] || '#64748b' %>;"><%= name.trim() %></span>
+                                                <% })} else { %>
+                                                    <span class="text-[10px] text-slate-300 italic font-bold">Trống</span>
+                                                <% } %>
+                                            </div>
+                                        </td> 
+                                    <% } %>
+                                    
+                                    <td class="px-6 py-5 pr-8 text-right ignore-export no-print">
+                                        <div class="flex justify-end gap-2">
+                                            <a href="/admin/customers/detail/<%= cust.id %>" class="px-3 py-1.5 flex items-center gap-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm font-bold text-xs uppercase">
+                                                <i class="bi bi-eye-fill text-sm"></i> Chi tiết
+                                            </a>
+                                            <!-- <a href="/admin/customers/edit/<%= cust.id %>" class="px-3 py-1.5 flex items-center gap-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white transition-all shadow-sm font-bold text-xs uppercase">
+                                                <i class="bi bi-pencil-square text-sm"></i> Sửa
+                                            </a> -->
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        // --- 1. LOGIC ẨN / HIỆN SỐ LƯỢNG HÀNG TRÊN BẢNG ---
+        function updateTableDisplay() {
+            const limitVal = document.getElementById('display-limit').value;
+            const rows = document.querySelectorAll('#reportTable tbody tr.data-row'); // Chỉ lấy các dòng chứa dữ liệu
+            
+            let limit = limitVal === 'all' ? rows.length : parseInt(limitVal, 10);
+            
+            rows.forEach((row, index) => {
+                if (index < limit) {
+                    row.style.display = ''; // Hiển thị theo class Tailwind hiện tại
+                } else {
+                    row.style.display = 'none'; // Ẩn đi
+                }
+            });
+        }
+
+        // Tự động chạy ẩn/hiện hàng khi vừa load trang
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTableDisplay();
+        });
+
+        // --- 2. LOGIC BỘ LỌC (DROPDOWN) ---
+        function toggleDropdown(dropdownId) {
+            document.querySelectorAll('div[id$="-dropdown"]').forEach(el => {
+                if(el.id !== dropdownId) el.classList.add('hidden');
+            });
+            document.getElementById(dropdownId).classList.toggle('hidden');
+        }
+
+        function updateCounter(inputName, textId, defaultText) {
+            const checkboxes = document.querySelectorAll(`input[name="${inputName}"]:checked`);
+            const textEl = document.getElementById(textId);
+            if(checkboxes.length > 0) {
+                textEl.innerText = `Đã chọn (${checkboxes.length})`;
+            } else {
+                textEl.innerText = inputName === 'show_cols' ? 'Chưa chọn cột' : defaultText;
+            }
+        }
+
+        function filterList(input, listId) {
+            const filter = input.value.toLowerCase();
+            const labels = document.getElementById(listId).querySelectorAll('label');
+            labels.forEach(label => {
+                const text = label.innerText.toLowerCase();
+                label.style.display = text.includes(filter) ? 'flex' : 'none';
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('[data-dropdown="true"]')) {
+                document.querySelectorAll('div[id$="-dropdown"]').forEach(el => {
+                    el.classList.add('hidden');
+                });
+            }
+        });
+
+        // --- 3. LOGIC XUẤT EXCEL (TÙY CHỌN SỐ LƯỢNG) ---
+        function exportToExcel() {
+            let data = [];
+            
+            // Lấy tiêu đề cột
+            const headers = Array.from(document.querySelectorAll("#reportTable thead th"))
+                .filter(th => !th.classList.contains('ignore-export'))
+                .map(th => th.innerText.trim());
+            data.push(headers);
+
+            // Kiểm tra tùy chọn số lượng xuất Excel
+            const exportLimitVal = document.getElementById('export-limit').value;
+            let exportLimit = exportLimitVal === 'all' ? Infinity : parseInt(exportLimitVal, 10);
+
+            // Duyệt qua dữ liệu các hàng (bao gồm cả những hàng đang bị ẩn bằng display:none)
+            const rows = document.querySelectorAll("#reportTable tbody tr.data-row");
+            let count = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+                if (count >= exportLimit) break; // Dừng lại nếu đã đủ số lượng tải
+
+                const row = rows[i];
+                const rowData = Array.from(row.querySelectorAll("td"))
+                    .filter(td => !td.classList.contains('ignore-export'))
+                    .map(td => {
+                        let text = td.innerText.trim();
+                        // Giữ số 0 ở SĐT
+                        if (text.match(/^0\d{8,10}$/)) return `'${text}`; 
+                        return text;
+                    });
+                
+                data.push(rowData);
+                count++;
+            }
+
+            // Tạo file Excel .xlsx
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Khách hàng");
+
+            const colWidths = headers.map(h => ({ wch: Math.max(h.length, 20) }));
+            ws['!cols'] = colWidths;
+
+            const fileName = `Bao_Cao_${exportLimitVal === 'all' ? 'All' : exportLimitVal}_KhachHang_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
+</body>
+</html>

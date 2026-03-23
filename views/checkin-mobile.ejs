@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Điểm danh - <%= event_name %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Hiệu ứng trượt mượt mà cho Form mở rộng */
+        .slide-down {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .slide-down.active {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] p-6 md:p-8 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden">
+        
+        <div class="text-center mb-8 relative z-10">
+            <div class="w-16 h-16 bg-indigo-50 rounded-[1.5rem] flex items-center justify-center mx-auto mb-4 border-2 border-indigo-100 shadow-inner">
+                <i class="bi bi-qr-code-scan text-3xl text-indigo-500"></i>
+            </div>
+            <h1 class="text-2xl font-black text-slate-800 uppercase tracking-tight leading-tight mb-2"><%= event_name %></h1>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Hệ thống Check-in tự động</p>
+        </div>
+
+        <form id="checkinForm" class="relative z-10 space-y-4">
+            <input type="hidden" id="token" value="<%= token %>">
+            
+            <div>
+                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-4">Số điện thoại của bạn</label>
+                <input type="tel" id="phone" placeholder="Ví dụ: 0912345678" required
+                    class="w-full bg-slate-50 border-2 border-slate-100 text-slate-800 text-lg font-bold rounded-full px-6 py-4 outline-none focus:border-indigo-400 focus:bg-white transition-all text-center tracking-widest">
+            </div>
+
+            <div id="extraInfo" class="slide-down space-y-4">
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-3xl mb-4">
+                    <p class="text-xs text-amber-700 font-bold text-center"><i class="bi bi-info-circle-fill"></i> Số điện thoại của bạn chưa có trong danh sách. Vui lòng cho biết tên để đăng ký tham dự!</p>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-4">Họ và Tên</label>
+                    <input type="text" id="full_name" placeholder="Nguyễn Văn A" 
+                        class="w-full bg-slate-50 border-2 border-slate-100 text-slate-800 font-bold rounded-full px-6 py-4 outline-none focus:border-indigo-400 focus:bg-white transition-all text-center">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 pl-4">SĐT Nhân viên mời (Nếu có)</label>
+                    <input type="tel" id="ref_phone" placeholder="Để trống nếu tự đến" 
+                        class="w-full bg-slate-50 border-2 border-slate-100 text-slate-800 font-bold rounded-full px-6 py-4 outline-none focus:border-indigo-400 focus:bg-white transition-all text-center tracking-widest">
+                </div>
+            </div>
+
+            <div id="messageBox" class="hidden text-center text-sm font-bold p-4 rounded-3xl mt-4"></div>
+
+            <button type="submit" id="submitBtn" 
+                class="w-full mt-6 py-5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black rounded-full shadow-xl shadow-indigo-200 text-sm uppercase tracking-widest transition-transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                <span>Xác nhận Tham gia</span> <i class="bi bi-arrow-right-circle-fill text-lg"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+        <div class="absolute -top-[20%] -right-[10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-[20%] -left-[10%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('checkinForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const extraInfo = document.getElementById('extraInfo');
+        const messageBox = document.getElementById('messageBox');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Lấy dữ liệu
+            const phone = document.getElementById('phone').value.trim();
+            const token = document.getElementById('token').value;
+            const full_name = document.getElementById('full_name').value.trim();
+            const ref_phone = document.getElementById('ref_phone').value.trim();
+
+            if (!phone) return showMessage('Vui lòng nhập Số điện thoại!', 'error');
+
+            // Hiệu ứng Loading
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = `<i class="bi bi-arrow-repeat animate-spin text-xl"></i> <span>Đang xử lý...</span>`;
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70');
+
+            try {
+                // Gửi Request bằng Fetch API
+                const response = await fetch(`/checkin/<%= event_id %>/process`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, full_name, ref_phone, token })
+                });
+                
+                const data = await response.json();
+
+                if (data.need_info) {
+                    // Kịch bản Khách Vãng Lai: Mở form yêu cầu nhập Tên
+                    extraInfo.classList.add('active');
+                    document.getElementById('full_name').required = true;
+                    showMessage('Vui lòng bổ sung thông tin để đăng ký.', 'warning');
+                } else if (data.success) {
+                    // Check-in Thành công (Khách cũ hoặc Khách mới đã điền đủ form)
+                    extraInfo.classList.remove('active');
+                    form.reset();
+                    showSuccessUI(data.message);
+                } else {
+                    // Lỗi (Mã QR hết hạn, Server lỗi...)
+                    showMessage(data.message, 'error');
+                }
+            } catch (err) {
+                showMessage('Không thể kết nối đến máy chủ.', 'error');
+            } finally {
+                // Tắt hiệu ứng Loading
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70');
+            }
+        });
+
+        // Hàm hiển thị Text thông báo
+        function showMessage(text, type) {
+            messageBox.classList.remove('hidden', 'bg-rose-50', 'text-rose-600', 'bg-amber-50', 'text-amber-600', 'bg-emerald-50', 'text-emerald-600');
+            if(type === 'error') messageBox.classList.add('bg-rose-50', 'text-rose-600');
+            if(type === 'warning') messageBox.classList.add('bg-amber-50', 'text-amber-600');
+            if(type === 'success') messageBox.classList.add('bg-emerald-50', 'text-emerald-600');
+            messageBox.innerText = text;
+        }
+
+        // Hàm biến đổi toàn bộ giao diện khi Check-in thành công rực rỡ
+        function showSuccessUI(message) {
+            form.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-8 animate-[scale-up_0.5s_ease-out]">
+                    <div class="w-24 h-24 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner shadow-emerald-200">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    <h2 class="text-xl font-black text-slate-800 text-center mb-2 uppercase">Thành công!</h2>
+                    <p class="text-sm font-bold text-slate-500 text-center">${message}</p>
+                </div>
+            `;
+        }
+    </script>
+    <style>
+        @keyframes scale-up { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</body>
+</html>

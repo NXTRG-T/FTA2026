@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Biểu mẫu Khảo sát - Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 pb-20">
+
+<div class="max-w-[1440px] mx-auto p-4 md:p-6 md:pt-8">
+    
+    <div class="mb-4">
+        <a href="/admin/dashboard" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
+            <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Về Dashboard
+        </a>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-5 md:p-6 rounded-[2rem] shadow-sm border border-slate-200">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight m-0 flex items-center gap-2">
+                <i class="bi bi-ui-checks text-indigo-500"></i> Quản Lý Khảo Sát
+            </h2>
+            <p class="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-1 m-0">Xây dựng & Quản lý các biểu mẫu lấy ý kiến</p>
+        </div>
+        
+        <div class="shrink-0">
+            <a href="/admin/forms/builder" class="px-6 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-indigo-200 hover:-translate-y-1">
+                <i class="bi bi-plus-circle-fill text-base"></i> Tạo Biểu Mẫu Mới
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <% if (forms.length === 0) { %>
+            <div class="col-span-full text-center py-12 bg-white rounded-[2.5rem] border border-dashed border-slate-300 text-slate-500 shadow-sm">
+                <i class="bi bi-clipboard-x text-5xl mb-3 block text-slate-300"></i>
+                <p class="font-bold">Chưa có biểu mẫu nào được tạo.</p>
+            </div>
+        <% } %>
+
+        <% forms.forEach(f => { 
+            const isActive = f.is_active === 1;
+            const qCount = f.form_structure ? JSON.parse(f.form_structure).length : 0;
+        %>
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 flex flex-col relative transition-all <%= isActive ? 'border-t-4 border-t-indigo-500 hover:shadow-md' : 'opacity-80 grayscale-[30%]' %>">
+                <div class="absolute top-5 right-5">
+                    <span class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-lg border shadow-sm <%= isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' %>">
+                        <i class="bi <%= isActive ? 'bi-check-circle-fill' : 'bi-lock-fill' %>"></i> <%= isActive ? 'Hoạt động' : 'Đã khóa' %>
+                    </span>
+                </div>
+                
+                <h3 class="text-xl font-black text-slate-800 mb-2 pr-28 leading-tight mt-1"><%= f.title %></h3>
+                <p class="text-sm font-medium text-slate-500 mb-4 line-clamp-2"><%= f.description || 'Không có mô tả' %></p>
+                
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl w-max mb-6">
+                    <i class="bi bi-list-ol"></i> <span class="text-xs font-black uppercase tracking-widest"><%= qCount %> Câu hỏi</span>
+                </div>
+
+                <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <a href="/admin/forms/builder?id=<%= f.id %>" class="flex-1 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl font-bold text-xs uppercase tracking-widest text-center transition-all shadow-sm">
+                        <i class="bi bi-pencil-square"></i> Sửa
+                    </a>
+                    
+                    <form action="/admin/forms/toggle/<%= f.id %>" method="POST" class="flex-1 m-0">
+                        <button type="submit" class="w-full py-2.5 <%= isActive ? 'bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white' %> rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-sm">
+                            <i class="bi <%= isActive ? 'bi-lock-fill' : 'bi-unlock-fill' %>"></i> <%= isActive ? 'Khóa' : 'Mở' %>
+                        </button>
+                    </form>
+
+                    <form action="/admin/forms/delete/<%= f.id %>" method="POST" class="m-0" onsubmit="return confirm('Bạn có chắc muốn xóa vĩnh viễn biểu mẫu này?');">
+                        <button type="submit" class="w-10 h-10 flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl font-bold transition-all shadow-sm" title="Xóa biểu mẫu">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+</div>
+</body>
+</html>

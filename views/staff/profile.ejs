@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Tin Cá Nhân</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800 pb-20">
+
+    <nav class="glass-header text-white px-4 py-3 shadow-lg sticky top-0 z-50">
+        <div class="max-w-2xl mx-auto flex items-center gap-3 md:gap-4">
+            <a href="/staff" class="inline-flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all active:scale-95 shrink-0">
+                <i class="bi bi-arrow-left text-xl"></i>
+                <span class="text-sm font-black uppercase tracking-wider hidden md:block">Trở lại</span>
+            </a>
+            <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                <h1 class="font-black text-sm md:text-xl leading-none truncate shrink-0">Hồ Sơ Của Tôi</h1>
+                <span class="text-white/40 font-light text-xl">|</span>
+                <div class="flex items-center gap-1.5 text-teal-100 min-w-0">
+                    <i class="bi bi-person-badge-fill text-sm md:text-lg shrink-0"></i>
+                    <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest truncate">Thông tin cá nhân</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-2xl mx-auto p-4 md:p-6 mt-4 space-y-6">
+        
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8 text-center">
+            <div class="flex flex-col items-center justify-center mb-8 relative z-10">
+                <div class="relative group">
+                    <img src="<%= staff.avatar_url || '/img/default-avatar.png' %>" alt="My Avatar" class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white shadow-xl ring-1 ring-slate-100">
+                    
+                    <form action="/staff/profile/update-avatar" method="POST" enctype="multipart/form-data">
+                        <input type="file" name="avatar" id="avatar-upload" accept="image/*" class="hidden" onchange="handleAvatarUpload(this)">
+                        
+                        <label for="avatar-upload" class="cursor-pointer absolute bottom-2 right-2 w-10 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-200 transition-transform hover:scale-110 border-2 border-white" title="Thay đổi ảnh đại diện">
+                            <i class="bi bi-camera-fill"></i>
+                        </label>
+                    </form>
+                </div>
+                
+                <h2 class="text-2xl font-black text-slate-800 mt-4 mb-1 uppercase tracking-tight"><%= staff.full_name %></h2>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest"><i class="bi bi-person-badge-fill"></i> <%= staff.business_code || 'Nhân viên kinh doanh' %></p>
+                <span class="inline-block bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-full text-sm mt-2 border border-slate-200">@<%= staff.username %></span>
+            </div>
+
+            <div class="space-y-4 text-left border-t border-dashed border-slate-200 pt-6 mt-4">
+                <p class="m-0 flex items-center gap-3"><i class="bi bi-envelope-fill text-indigo-500 text-xl w-6"></i> <b class="w-24 text-slate-600">Email:</b> <span class="font-medium text-slate-900"><%= staff.email || 'Chưa cập nhật' %></span></p>
+                <p class="m-0 flex items-center gap-3"><i class="bi bi-calendar-date-fill text-amber-500 text-xl w-6"></i> <b class="w-24 text-slate-600">Ngày sinh:</b> <span class="font-medium text-slate-900"><%= staff.birthday ? new Date(staff.birthday).toLocaleDateString('vi-VN') : 'Chưa cập nhật' %></span></p>
+                <p class="m-0 flex items-center gap-3"><i class="bi bi-person-vcard text-rose-500 text-xl w-6"></i> <b class="w-24 text-slate-600">CCCD:</b> <span class="font-medium text-slate-900"><%= staff.cccd || 'Chưa cập nhật' %></span></p>
+                <p class="m-0 flex items-center gap-3"><i class="bi bi-geo-alt-fill text-emerald-500 text-xl w-6"></i> <b class="w-24 text-slate-600">Địa chỉ:</b> <span class="font-medium text-slate-900"><%= staff.address || 'Chưa cập nhật' %></span></p>
+                <p class="m-0 flex items-center gap-3"><i class="bi bi-briefcase-fill text-blue-500 text-xl w-6"></i> <b class="w-24 text-slate-600">MSKD:</b> <span class="font-medium text-slate-900"><%= staff.business_code || 'Chưa cập nhật' %></span></p>
+                <p class="m-0 flex items-center gap-3"><i class="bi bi-building text-purple-500 text-xl w-6"></i> <b class="w-24 text-slate-600">Khu vực:</b> <span class="font-medium text-slate-900"><%= staff.work_area || 'Chưa cập nhật' %></span></p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <h4 class="text-xl font-black text-amber-600 mb-6 mt-0 flex items-center gap-2"><i class="bi bi-shield-lock-fill"></i> Đổi mật khẩu</h4>
+            
+            <form action="/staff/profile/change-password" method="POST" onsubmit="return validatePassword(this);" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-1">Mật khẩu cũ *</label>
+                    <div class="relative">
+                        <input type="password" name="old_password" required placeholder="Nhập mật khẩu hiện tại" oninput="this.value = this.value.replace(/\s/g, '')" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 pr-10">
+                        <i class="bi bi-eye-slash absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer" onmousedown="showPassword(this)" onmouseup="hidePassword(this)" onmouseleave="hidePassword(this)" ontouchstart="showPassword(this)" ontouchend="hidePassword(this)"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-800 mb-1">Mật khẩu mới *</label>
+                    <div class="relative">
+                        <input type="password" name="new_password" required placeholder="Nhập mật khẩu mới" oninput="this.value = this.value.replace(/\s/g, '')" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 pr-10">
+                        <i class="bi bi-eye-slash absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer" onmousedown="showPassword(this)" onmouseup="hidePassword(this)" onmouseleave="hidePassword(this)" ontouchstart="showPassword(this)" ontouchend="hidePassword(this)"></i>
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-800 mb-1">Xác nhận mật khẩu mới *</label>
+                    <div class="relative">
+                        <input type="password" name="confirm_password" required placeholder="Nhập lại mật khẩu mới" oninput="this.value = this.value.replace(/\s/g, '')" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-slate-900 pr-10">
+                        <i class="bi bi-eye-slash absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer" onmousedown="showPassword(this)" onmouseup="hidePassword(this)" onmouseleave="hidePassword(this)" ontouchstart="showPassword(this)" ontouchend="hidePassword(this)"></i>
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black transition-colors shadow-sm flex justify-center items-center gap-2 mt-4">
+                    <i class="bi bi-check-circle-fill"></i> LƯU MẬT KHẨU
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showPassword(icon) {
+            icon.previousElementSibling.type = 'text';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+        function hidePassword(icon) {
+            icon.previousElementSibling.type = 'password';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        }
+        function validatePassword(form) {
+            if (form.new_password.value !== form.confirm_password.value) {
+                alert('Mật khẩu xác nhận không khớp! Vui lòng kiểm tra lại.');
+                return false;
+            }
+            return true;
+        }
+
+        function handleAvatarUpload(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const maxSizeMB = 2; // Giới hạn 2MB
+                
+                if (file.size > maxSizeMB * 1024 * 1024) {
+                    alert(`🛑 LỖI: Ảnh của bạn nặng ${(file.size / (1024*1024)).toFixed(2)}MB. Vui lòng chọn ảnh nhỏ hơn ${maxSizeMB}MB để hệ thống tải nhanh hơn!`);
+                    input.value = ''; // Xóa file vừa chọn
+                    return;
+                }
+                
+                // Nếu ảnh hợp lệ -> Tự động submit form
+                input.form.submit();
+            }
+        }
+    </script>
+</body>
+</html>

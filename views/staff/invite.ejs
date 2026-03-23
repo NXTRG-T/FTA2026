@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mời & Quản Lý Sự Kiện</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 font-sans text-gray-800 pb-20">
+    
+    <nav class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-4 shadow-md flex items-center gap-3 sticky top-0 z-50">
+        <a href="/staff/customers" class="text-white hover:text-blue-100 transition-colors text-xl"><i class="bi bi-arrow-left"></i></a>
+        <h3 class="font-bold text-lg m-0 text-white">Quản Lý Tham Dự Sự Kiện</h3>
+    </nav>
+
+    <div class="max-w-2xl mx-auto p-4 md:p-6">
+        
+        <div class="text-center mb-6 pb-6 border-b border-dashed border-slate-300">
+            <div class="w-20 h-20 bg-white text-blue-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-3 shadow-sm border border-blue-100">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 m-0"><%= customer.full_name %></h2>
+            <p class="text-slate-600 font-bold mt-1 text-sm bg-slate-100 inline-block px-3 py-1 rounded-full"><i class="bi bi-telephone-fill"></i> <%= customer.phone_1 %></p>
+        </div>
+
+        <form action="/staff/customers/<%= customerId %>/invite" method="POST" class="bg-white p-6 rounded-3xl shadow-sm border border-blue-100 mb-8">
+            <h4 class="text-blue-600 font-black text-lg mb-5 flex items-center gap-2 mt-0"><i class="bi bi-envelope-paper-heart-fill"></i> Gửi lời mời sự kiện mới</h4>
+            <div class="space-y-5 mb-6">
+                <div>
+                    <label class="block font-bold text-slate-800 mb-2">Sự kiện sắp diễn ra:</label>
+                    <% if (events.length === 0) { %>
+                        <div class="p-3 bg-slate-50 rounded-xl text-slate-500 font-medium italic text-center border border-slate-200">Hiện chưa có sự kiện nào sắp tới.</div>
+                    <% } else { %>
+                        <select name="event_id" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-800 transition-all cursor-pointer" required>
+                            <option value="" disabled selected>-- Chọn sự kiện để mời --</option>
+                            <% events.forEach(event => { %>
+                                <option value="<%= event.id %>"><%= event.event_name %></option>
+                            <% }) %>
+                        </select>
+                    <% } %>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-800 mb-2">Trạng thái phản hồi lúc mời:</label>
+                    <select name="status" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none font-bold text-slate-800 transition-all cursor-pointer">
+                        <option value="Đã nhận lời mời">🟢 Đã nhận lời mời (Đồng ý tham gia)</option>
+                        <option value="Cần suy nghĩ thêm">🟡 Đang suy nghĩ thêm</option>
+                        <option value="Từ chối tham gia">🔴 Từ chối tham gia</option>
+                    </select>
+                </div>
+            </div>
+
+            <% if (events.length > 0) { %>
+                <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-lg transition-colors shadow-sm flex justify-center items-center gap-2">
+                    <i class="bi bi-send-fill"></i> GHI NHẬN LỜI MỜI
+                </button>
+            <% } %>
+        </form>
+
+        <h4 class="font-black text-slate-900 mb-4 flex items-center justify-between px-1">
+            <span><i class="bi bi-clock-history text-cyan-600"></i> Lịch sử tham gia sự kiện</span>
+            <% if(typeof invitedEvents !== 'undefined') { %>
+                <span class="bg-slate-200 text-slate-800 px-3 py-0.5 rounded-full text-sm shadow-inner"><%= invitedEvents.length %></span>
+            <% } %>
+        </h4>
+
+        <% if (typeof invitedEvents === 'undefined' || invitedEvents.length === 0) { %>
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 text-center text-slate-500 font-medium">
+                Khách hàng này chưa được mời tham gia sự kiện nào.
+            </div>
+        <% } else { %>
+            <div class="space-y-4">
+                <% invitedEvents.forEach(ev => { 
+                    // Phân loại màu nền thẻ (Badge) để dễ nhận diện trên điện thoại
+                    let badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
+                    if(ev.status === 'Đã tham dự') badgeColor = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                    if(ev.status === 'Không tham dự' || ev.status === 'Từ chối tham gia') badgeColor = 'bg-rose-100 text-rose-700 border-rose-200';
+                    if(ev.status === 'Đã nhận lời mời') badgeColor = 'bg-blue-100 text-blue-700 border-blue-200';
+                    if(ev.status === 'Cần suy nghĩ thêm') badgeColor = 'bg-amber-100 text-amber-700 border-amber-200';
+                %>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col hover:border-cyan-300 transition-colors">
+                        <strong class="text-lg font-black text-slate-900 mb-1 leading-tight"><%= ev.event_name %></strong>
+                        <p class="text-sm font-bold text-slate-500 mb-3"><i class="bi bi-calendar-event"></i> <%= formatDateTime(ev.start_time) %></p>
+                        
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-sm text-slate-800 font-bold">Thẻ trạng thái:</span>
+                            <span class="px-2.5 py-1 text-xs font-black rounded-md border <%= badgeColor %> shadow-sm"><%= ev.status %></span>
+                        </div>
+
+                        <form action="/staff/customers/<%= customerId %>/events/<%= ev.event_id %>/update-status" method="POST" class="mt-auto border-t border-dashed border-slate-200 pt-4 flex gap-2">
+                            <select name="attendance_status" class="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl outline-none font-bold text-slate-800 text-sm cursor-pointer">
+                                <option value="Đã tham dự" <%= ev.status === 'Đã tham dự' ? 'selected' : '' %>>✅ Đã tham dự (Check-in)</option>
+                                <option value="Không tham dự" <%= ev.status === 'Không tham dự' ? 'selected' : '' %>>❌ Không tham dự</option>
+                                <option value="Đã nhận lời mời" <%= ev.status === 'Đã nhận lời mời' ? 'selected' : '' %>>🟢 Đã nhận lời mời</option>
+                                <option value="Cần suy nghĩ thêm" <%= ev.status === 'Cần suy nghĩ thêm' ? 'selected' : '' %>>🟡 Đang suy nghĩ thêm</option>
+                                <option value="Từ chối tham gia" <%= ev.status === 'Từ chối tham gia' ? 'selected' : '' %>>🔴 Từ chối tham gia</option>
+                            </select>
+                            <button type="submit" class="px-4 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors text-sm shadow-sm whitespace-nowrap">
+                                LƯU
+                            </button>
+                        </form>
+                    </div>
+                <% }) %>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

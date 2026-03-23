@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Nhân Sự - FTA CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 pb-20">
+
+<div class="max-w-[1400px] mx-auto p-4 md:p-6 md:pt-8">
+    
+    <div class="mb-5">
+        <a href="/admin/dashboard" class="inline-flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-xl font-bold text-sm uppercase tracking-widest shadow-sm transition-all group">
+            <i class="bi bi-arrow-left text-lg group-hover:-translate-x-1 transition-transform"></i> 🏠 Về Dashboard
+        </a>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 mb-8 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 tracking-tight m-0 flex items-center gap-3">
+                👥 Quản Lý Nhân Sự ✨
+            </h2>
+            <p class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-2 m-0">🗂️ Hồ sơ tài khoản & Phân quyền hệ thống</p>
+        </div>
+        <div class="shrink-0 mt-4 sm:mt-0">
+            <button type="button" id="btnToggleAdd" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 rounded-xl font-bold text-sm uppercase tracking-widest transition-transform hover:scale-105 flex items-center gap-2 shadow-md w-full sm:w-auto justify-center" onclick="toggleAddForm()">
+                <i class="bi bi-person-plus-fill text-lg"></i> <span id="btnToggleText">Tạo Tài Khoản 🚀</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="hidden bg-white p-6 md:p-8 rounded-2xl shadow-sm border-2 border-indigo-100 mb-8 transition-all" id="addStaffForm">
+        <div class="mb-6 pb-4 border-b border-slate-100">
+            <h4 class="text-xl font-black text-indigo-700 m-0 flex items-center gap-2">
+                📝 Nhập Hồ Sơ Nhân Viên Mới
+            </h4>
+            <p class="text-sm text-slate-500 mt-2">Vui lòng điền đầy đủ các thông tin bắt buộc (*).</p>
+        </div>
+        
+        <form action="/admin/staff/add" method="POST">
+            <div class="mb-8">
+                <h5 class="text-sm font-black text-purple-600 uppercase tracking-widest mb-4 flex items-center gap-2">🔐 1. Thông tin đăng nhập</h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 bg-purple-50/50 p-5 rounded-2xl border border-purple-100">
+                    <div>
+                        <label class="block text-xs font-bold text-purple-700 uppercase tracking-widest mb-2">🆔 Tên đăng nhập *</label>
+                        <input type="text" name="username" required placeholder="Ví dụ: nguyenvana" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9._-]/g, '')" class="w-full p-4 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-colors font-bold text-base">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-purple-700 uppercase tracking-widest mb-2">🔑 Mật khẩu khởi tạo *</label>
+                        <input type="password" name="password" required oninput="this.value = this.value.replace(/\s/g, '')" placeholder="Nhập mật khẩu..." class="w-full p-4 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-colors font-bold text-base">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h5 class="text-sm font-black text-emerald-600 uppercase tracking-widest mb-4 flex items-center gap-2">👤 2. Thông tin cơ bản</h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs font-bold text-emerald-700 uppercase tracking-widest mb-2">🏷️ Họ và tên *</label>
+                        <input type="text" name="full_name" required placeholder="Nguyễn Văn A" class="w-full p-4 border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-colors font-black uppercase text-base text-emerald-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-700 uppercase tracking-widest mb-2">⚧️ Giới tính</label>
+                        <select name="gender" class="w-full p-4 border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-colors font-bold text-base">
+                            <option value="Chưa xác định" selected>Chưa xác định</option>
+                            <option value="Nam">👦 Nam</option>
+                            <option value="Nữ">👧 Nữ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-emerald-700 uppercase tracking-widest mb-2">🎂 Ngày sinh *</label>
+                        <input type="date" name="birthday" required class="w-full p-4 border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-colors font-bold text-base">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs font-bold text-emerald-700 uppercase tracking-widest mb-2">🪪 Số CCCD (12 số) *</label>
+                        <input type="text" name="cccd" required pattern="\d{12}" maxlength="12" placeholder="Nhập đủ 12 số CCCD" oninput="this.value = this.value.replace(/\D/g, '')" class="w-full p-4 border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-colors font-bold text-base text-emerald-900">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h5 class="text-sm font-black text-amber-600 uppercase tracking-widest mb-4 flex items-center gap-2">📞 3. Thông tin liên hệ</h5>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-amber-50/50 p-5 rounded-2xl border border-amber-100">
+                    <div>
+                        <label class="block text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">📱 SĐT Chính *</label>
+                        <input type="text" name="phone_1" required pattern="[0-9]*" placeholder="VD: 0987654321" class="w-full p-4 border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition-colors font-bold text-base text-amber-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">☎️ SĐT Phụ</label>
+                        <input type="text" name="phone_2" pattern="[0-9]*" placeholder="Không bắt buộc" class="w-full p-4 border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition-colors font-bold text-base">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">📧 Email</label>
+                        <input type="email" name="email" placeholder="email@domain.com" class="w-full p-4 border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition-colors font-bold text-base">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">🏠 Địa chỉ hiện tại</label>
+                        <input type="text" name="address" placeholder="Số nhà, đường, phường/xã..." class="w-full p-4 border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition-colors font-bold text-base">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h5 class="text-sm font-black text-rose-500 uppercase tracking-widest mb-4 flex items-center gap-2">💼 4. Trạng thái công việc</h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 bg-rose-50/50 p-5 rounded-2xl border border-rose-100">
+                    <div>
+                        <label class="block text-xs font-bold text-rose-700 uppercase tracking-widest mb-2">🏢 Mã KD</label>
+                        <input type="text" name="business_code" maxlength="8" pattern="[0-9]*" placeholder="Tối đa 8 số" class="w-full p-4 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-colors font-bold text-base text-rose-900">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-rose-700 uppercase tracking-widest mb-2">📍 Khu vực</label>
+                        <input type="text" name="work_area" placeholder="Phòng ban..." class="w-full p-4 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-colors font-bold text-base">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs font-bold text-rose-700 uppercase tracking-widest mb-2">👨‍💼 Trực thuộc quản lý</label>
+                        <select name="leader_id" class="w-full p-4 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-colors font-bold text-base">
+                            <option value="">-- Không có (Độc lập) --</option>
+                            <% leaders.forEach(leader => { %>
+                                <option value="<%= leader.id %>"><%= leader.full_name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-rose-700 uppercase tracking-widest mb-2">📅 Ngày BĐ Hợp đồng</label>
+                        <input type="date" name="start_date" class="w-full p-4 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-colors font-bold text-base text-slate-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-rose-700 uppercase tracking-widest mb-2">⏳ Ngày kết thúc</label>
+                        <input type="date" name="end_date" class="w-full p-4 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-colors font-bold text-base text-slate-600">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-8 mt-4">
+                <button type="submit" class="w-full md:w-auto px-12 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-black text-lg transition-transform hover:scale-105 flex justify-center items-center gap-3 shadow-lg mx-auto" onclick="if(!this.form.checkValidity()) alert('Vui lòng điền đầy đủ các trường bắt buộc!');">
+                    <i class="bi bi-check-circle-fill text-2xl"></i> HOÀN TẤT TẠO TÀI KHOẢN 🎉
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="flex flex-col md:flex-row justify-between md:items-center gap-5 mb-8">
+        <h4 class="text-xl font-black text-slate-800 m-0 flex items-center">
+            📋 DANH SÁCH NHÂN SỰ 
+            <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm ml-3 shadow-sm"><%= staffs.length %> Nhân viên</span>
+        </h4>
+        <div class="relative w-full md:w-96">
+            <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500 text-lg"></i>
+            <input type="text" id="searchStaffInput" placeholder="🔍 Tìm theo Tên, ID, SĐT..." class="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-base font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm placeholder:text-slate-400 placeholder:font-medium">
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="staffContainer">
+    <% staffs.forEach(staff => { %>
+        <div class="staff-card bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 hover:shadow-xl hover:border-indigo-300 transition-all flex flex-col group">
+            
+            <div class="flex justify-between items-start mb-5">
+                <div class="flex items-center gap-4">
+                    <div class="relative shrink-0">
+                        <img src="<%= staff.avatar_url || '/img/default-avatar.png' %>" alt="Avatar" loading="lazy" class="w-16 h-16 rounded-full object-cover border-2 border-slate-100 shadow-md">
+                        <div class="absolute bottom-0 right-0 w-4 h-4 <%= staff.is_locked == 1 ? 'bg-rose-500' : 'bg-emerald-500' %> border-2 border-white rounded-full shadow-sm"></div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-black text-indigo-800 m-0 leading-tight search-target mb-1"><%= staff.full_name %></h3>
+                        <span class="text-xs font-black text-pink-500 uppercase tracking-widest search-target">@<%= staff.username %></span>
+                    </div>
+                </div>
+                
+                <div>
+                    <% if(staff.is_locked == 1) { %>
+                        <span class="px-3 py-1.5 bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-widest rounded-xl border border-rose-100 shadow-sm">🔴 Bị Khóa</span>
+                    <% } else { %>
+                        <span class="px-3 py-1.5 bg-emerald-50 text-emerald-600 font-black text-[10px] uppercase tracking-widest rounded-xl border border-emerald-100 shadow-sm">🟢 Hoạt động</span>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-5 mb-5 px-2">
+                <div>
+                    <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest m-0 mb-1.5">📱 Điện thoại</p>
+                    <p class="text-base font-bold text-slate-700 m-0 search-target"><%= staff.phone_1 %> <%= staff.phone_2 ? ' - ' + staff.phone_2 : '' %></p>
+                </div>
+                <div>
+                    <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest m-0 mb-1.5">📍 Khu vực</p>
+                    <p class="text-base font-bold text-slate-700 m-0 truncate"><%= staff.work_area || 'Chưa phân bổ' %></p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50/80 rounded-2xl p-4 mb-6 border border-slate-100 flex flex-wrap gap-x-5 gap-y-3 text-sm font-semibold text-slate-500">
+                <div class="flex items-center gap-2"><span class="text-lg">📧</span> <%= staff.email || 'Không có email' %></div>
+                <div class="flex items-center gap-2"><span class="text-lg">💼</span> MSKD: <span class="font-black text-indigo-700"><%= staff.business_code || '---' %></span></div>
+                <div class="flex items-center gap-2"><span class="text-lg">🪪</span> CCCD: <span class="font-black text-slate-700"><%= staff.cccd %></span></div>
+            </div>
+
+            <div class="mt-auto border-t border-slate-100 pt-5 flex justify-between items-center">
+                <div class="flex gap-3">
+                    <a href="/admin/staff/detail/<%= staff.id %>" class="px-5 py-3 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-xl text-sm font-black uppercase tracking-widest transition-transform hover:scale-105 shadow-sm">
+                        👁️ Chi tiết
+                    </a>
+                    <button type="button" onclick="openEditModal(this)"
+                        data-id="<%= staff.id %>" data-fullname="<%= staff.full_name %>" data-gender="<%= staff.gender %>"
+                        data-birthday="<%= staff.birthday %>" data-cccd="<%= staff.cccd %>" data-phone1="<%= staff.phone_1 %>"
+                        data-phone2="<%= staff.phone_2 %>" data-businesscode="<%= staff.business_code %>" data-email="<%= staff.email %>"
+                        data-address="<%= staff.address %>" data-workarea="<%= staff.work_area %>" data-leaderid="<%= staff.leader_id %>"
+                        data-startdate="<%= staff.start_date %>" data-enddate="<%= staff.end_date %>"
+                        class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-black uppercase tracking-widest transition-transform hover:scale-105 shadow-sm">
+                        ✏️ Sửa
+                    </button>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-500 transition-transform hover:scale-110 text-lg shadow-sm" onclick="openPwdModal('<%= staff.id %>', '<%= staff.full_name %>')" title="Đổi mật khẩu">
+                        <i class="bi bi-key-fill"></i>
+                    </button>
+
+                    <% if(staff.is_locked == 1) { %>
+                        <button type="button" onclick="openLockModal('<%= staff.id %>', 0, '')" class="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-transform hover:scale-110 text-lg shadow-sm" title="Mở khóa">
+                            <i class="bi bi-unlock-fill"></i>
+                        </button>
+                    <% } else { %>
+                        <button type="button" onclick="openLockModal('<%= staff.id %>', 1, '<%= staff.lock_message || '' %>')" class="w-10 h-10 rounded-xl flex items-center justify-center bg-rose-50 hover:bg-rose-100 text-rose-600 transition-transform hover:scale-110 text-lg shadow-sm" title="Khóa tài khoản">
+                            <i class="bi bi-lock-fill"></i>
+                        </button>
+                    <% } %>
+
+                    <form action="/admin/staff/delete/<%= staff.id %>" method="POST" onsubmit="return confirm('Chuyển nhân viên này vào danh sách Đã xóa?');" class="m-0">
+                        <button type="submit" class="w-10 h-10 rounded-xl flex items-center justify-center bg-red-50 hover:bg-red-500 text-red-600 hover:text-white transition-transform hover:scale-110 text-lg shadow-sm" title="Xóa tài khoản">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    <% }) %>
+    </div>
+
+    <dialog id="editModal" class="border-none p-0 bg-transparent m-auto w-full max-w-3xl max-h-screen backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm outline-none transition-all">
+        <div class="bg-white w-full rounded-[2rem] shadow-2xl flex flex-col max-h-[calc(100vh-2rem)] relative overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 class="text-xl font-black text-indigo-700 m-0">✏️ Sửa Thông Tin Nhân Viên</h3>
+                <button type="button" onclick="closeModal('editModal')" class="w-10 h-10 flex justify-center items-center rounded-xl bg-slate-200 text-slate-600 hover:bg-rose-500 hover:text-white transition-all hover:scale-110">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="editForm" method="POST" class="flex flex-col flex-1 overflow-hidden">
+                <div class="p-8 overflow-y-auto space-y-5 flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🏷️ Họ và tên *</label><input type="text" name="full_name" id="edit_full_name" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-bold uppercase"></div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">⚧️ Giới tính</label>
+                            <select name="gender" id="edit_gender" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold cursor-pointer">
+                                <option value="Chưa xác định">Chưa xác định</option>
+                                <option value="Nam">👦 Nam</option>
+                                <option value="Nữ">👧 Nữ</option>
+                            </select>
+                        </div>
+
+                        <div class="relative"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🔑 Đổi mật khẩu (Bỏ trống nếu giữ)</label><input type="password" name="password" id="edit_password" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold pr-10" placeholder="Nhập mật khẩu mới..."><i class="bi bi-eye-slash absolute right-4 bottom-4 text-slate-400 hover:text-slate-600 cursor-pointer text-lg" onmousedown="showPwd(this)" onmouseup="hidePwd(this)" onmouseleave="hidePwd(this)" ontouchstart="showPwd(this)" ontouchend="hidePwd(this)"></i></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🎂 Ngày sinh *</label><input type="date" name="birthday" id="edit_birthday" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🪪 Số CCCD *</label><input type="text" name="cccd" id="edit_cccd" required maxlength="12" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📱 SĐT Chính *</label><input type="text" name="phone_1" id="edit_phone_1" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">☎️ SĐT Phụ</label><input type="text" name="phone_2" id="edit_phone_2" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🏢 Mã KD</label><input type="text" name="business_code" id="edit_business_code" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📧 Email</label><input type="email" name="email" id="edit_email" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📍 Khu vực làm việc</label><input type="text" name="work_area" id="edit_work_area" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
+                        <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🏠 Địa chỉ</label><input type="text" name="address" id="edit_address" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📅 Ngày bắt đầu</label><input type="date" name="start_date" id="edit_start_date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">⏳ Ngày kết thúc</label><input type="date" name="end_date" id="edit_end_date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">👨‍💼 Trực thuộc Trưởng nhóm</label>
+                            <select name="leader_id" id="edit_leader_id" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold cursor-pointer">
+                                <option value="">-- Không có (Làm việc độc lập) --</option>
+                                <% leaders.forEach(leader => { %>
+                                    <option value="<%= leader.id %>"><%= leader.full_name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-4 shrink-0">
+                    <button type="button" onclick="closeModal('editModal')" class="px-8 py-4 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-black rounded-xl text-sm transition-all hover:scale-105 uppercase tracking-widest shadow-sm">Hủy</button>
+                    <button type="submit" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-sm transition-all hover:scale-105 shadow-md uppercase tracking-widest flex items-center gap-2" onclick="if(!this.form.checkValidity()) alert('Vui lòng kiểm tra lại thông tin bắt buộc!');"><i class="bi bi-save-fill"></i> Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="lockModal" class="border-none p-0 bg-transparent m-auto w-full max-w-md max-h-screen backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm outline-none transition-all" onclick="if(event.target === this) this.close()">
+        <div class="bg-white w-full rounded-2xl shadow-xl overflow-hidden relative flex flex-col">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 id="lockModalTitle" class="text-xl font-black text-slate-800 m-0">Trạng thái tài khoản</h3>
+                <button type="button" onclick="closeModal('lockModal')" class="w-10 h-10 flex justify-center items-center rounded-xl bg-slate-200 text-slate-600 hover:bg-rose-500 hover:text-white transition-all hover:scale-110">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+            <form id="lockForm" method="POST" class="p-6">
+                <input type="hidden" name="is_locked" id="lock_is_locked">
+                <div id="lockMessageContainer" class="mb-4">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📝 Lý do khóa tài khoản *</label>
+                    <textarea name="lock_message" id="lock_message" rows="3" placeholder="Nhập lý do khóa..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-rose-500 outline-none text-base font-semibold"></textarea>
+                </div>
+                <div id="unlockMessageContainer" class="mb-4 hidden">
+                    <div class="flex items-center gap-4 p-5 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <i class="bi bi-shield-check text-4xl text-emerald-500"></i>
+                        <p class="text-base font-bold text-emerald-800 m-0">Xác nhận mở khóa tài khoản cho nhân viên này?</p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-8">
+                    <button type="button" onclick="closeModal('lockModal')" class="px-8 py-4 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-black rounded-xl text-sm transition-all hover:scale-105 uppercase tracking-widest shadow-sm">Hủy</button>
+                    <button type="submit" id="lockSubmitBtn" class="px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-sm transition-all hover:scale-105 shadow-md uppercase tracking-widest" onclick="if(!this.form.checkValidity()) alert('Vui lòng nhập lý do!');">Xác nhận</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="pwdModal" class="border-none p-0 bg-transparent m-auto w-full max-w-md max-h-screen backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm outline-none transition-all" onclick="if(event.target === this) this.close()">
+        <div class="bg-white rounded-2xl shadow-xl w-full relative flex flex-col overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h4 class="text-xl font-black text-amber-600 m-0 flex items-center gap-3"><i class="bi bi-key-fill"></i> Đặt lại mật khẩu</h4>
+                <button type="button" onclick="closeModal('pwdModal')" class="w-10 h-10 flex justify-center items-center rounded-xl bg-slate-200 text-slate-600 hover:bg-rose-500 hover:text-white transition-all hover:scale-110">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="pwdForm" method="POST" onsubmit="return validatePassword(this);" class="p-6">
+                <p class="text-sm font-bold text-slate-500 mb-6 bg-amber-50 p-4 rounded-xl border border-amber-100">Đang thao tác: <b class="text-amber-700" id="pwdModalStaffName"></b></p>
+                <div class="mb-5 relative">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🔑 Mật khẩu mới *</label>
+                    <input type="password" name="new_password" required placeholder="Nhập mật khẩu mới..." oninput="this.value = this.value.replace(/\s/g, '')" class="w-full p-4 border border-slate-200 rounded-xl pr-12 focus:ring-2 focus:ring-amber-500 outline-none transition-colors font-bold text-base">
+                    <i class="bi bi-eye-slash absolute right-4 bottom-4 text-slate-400 hover:text-slate-600 cursor-pointer text-lg" onmousedown="showPwd(this)" onmouseup="hidePwd(this)" onmouseleave="hidePwd(this)" ontouchstart="showPwd(this)" ontouchend="hidePwd(this)"></i>
+                </div>
+                <div class="mb-8 relative">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🔒 Xác nhận mật khẩu *</label>
+                    <input type="password" name="confirm_password" required placeholder="Nhập lại mật khẩu..." oninput="this.value = this.value.replace(/\s/g, '')" class="w-full p-4 border border-slate-200 rounded-xl pr-12 focus:ring-2 focus:ring-amber-500 outline-none transition-colors font-bold text-base">
+                    <i class="bi bi-eye-slash absolute right-4 bottom-4 text-slate-400 hover:text-slate-600 cursor-pointer text-lg" onmousedown="showPwd(this)" onmouseup="hidePwd(this)" onmouseleave="hidePwd(this)" ontouchstart="showPwd(this)" ontouchend="hidePwd(this)"></i>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button type="submit" class="flex-[2] py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black transition-all hover:scale-105 shadow-md uppercase tracking-widest text-sm flex justify-center items-center gap-2"><i class="bi bi-save-fill"></i> LƯU MẬT KHẨU</button>
+                    <button type="button" class="flex-1 py-4 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl font-black transition-all hover:scale-105 shadow-sm uppercase tracking-widest text-sm" onclick="closeModal('pwdModal')">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <script>
+        // Xử lý Tìm kiếm Frontend (Live Search)
+        const searchStaffInput = document.getElementById('searchStaffInput');
+        if(searchStaffInput) {
+            searchStaffInput.addEventListener('input', function(e) {
+                const keyword = e.target.value.toLowerCase().trim();
+                const cards = document.querySelectorAll('.staff-card');
+                cards.forEach(card => {
+                    const searchableTexts = Array.from(card.querySelectorAll('.search-target')).map(el => el.innerText.toLowerCase());
+                    const match = searchableTexts.some(text => text.includes(keyword));
+                    card.style.display = match ? 'flex' : 'none';
+                });
+            });
+        }
+
+        // Đóng mở Form tạo tài khoản
+        function toggleAddForm() {
+            const form = document.getElementById('addStaffForm');
+            const btn = document.getElementById('btnToggleAdd');
+            const btnText = document.getElementById('btnToggleText');
+            
+            form.classList.toggle('hidden');
+            
+            if(form.classList.contains('hidden')) {
+                btnText.innerText = 'Tạo Tài Khoản 🚀';
+                btn.innerHTML = '<i class="bi bi-person-plus-fill text-lg"></i> <span id="btnToggleText">Tạo Tài Khoản 🚀</span>';
+                btn.className = 'px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 rounded-xl font-bold text-sm uppercase tracking-widest transition-transform hover:scale-105 flex items-center gap-2 shadow-md w-full sm:w-auto justify-center';
+            } else {
+                btn.innerHTML = '<i class="bi bi-x-lg text-lg"></i> <span id="btnToggleText">Đóng Form ❌</span>';
+                btn.className = 'px-8 py-4 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl font-bold text-sm uppercase tracking-widest transition-transform hover:scale-105 flex items-center gap-2 shadow-md border border-slate-200 w-full sm:w-auto justify-center';
+            }
+        }
+
+        function formatDateForInput(dateStr) {
+            try {
+                if (!dateStr || dateStr === 'null' || dateStr.trim() === '') return '';
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '';
+                return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            } catch(e) { return ''; }
+        }
+
+        function openEditModal(btn) {
+            const id = btn.getAttribute('data-id');
+            document.getElementById('editForm').action = `/admin/staff/edit/${id}`;
+            
+            const fields = ['fullname', 'cccd', 'phone1', 'phone2', 'businesscode', 'email', 'workarea', 'address'];
+            fields.forEach(f => {
+                const inputId = 'edit_' + f.replace('fullname', 'full_name').replace('phone1', 'phone_1').replace('phone2', 'phone_2').replace('businesscode', 'business_code').replace('workarea', 'work_area');
+                const el = document.getElementById(inputId);
+                let val = btn.getAttribute('data-' + f);
+                if (el) el.value = (val === 'null' || !val) ? '' : val;
+            });
+            
+            document.getElementById('edit_gender').value = btn.getAttribute('data-gender') || 'Chưa xác định';
+            document.getElementById('edit_leader_id').value = btn.getAttribute('data-leaderid') || '';
+            document.getElementById('edit_password').value = '';
+            document.getElementById('edit_birthday').value = formatDateForInput(btn.getAttribute('data-birthday'));
+            document.getElementById('edit_start_date').value = formatDateForInput(btn.getAttribute('data-startdate'));
+            document.getElementById('edit_end_date').value = formatDateForInput(btn.getAttribute('data-enddate'));
+            
+            openModal('editModal');
+        }
+
+        function openLockModal(id, isLocking, currentMsg) {
+            document.getElementById('lockForm').action = `/admin/staff/toggle-lock/${id}`;
+            document.getElementById('lock_is_locked').value = isLocking;
+            
+            const btn = document.getElementById('lockSubmitBtn');
+            
+            if (isLocking == 1) { 
+                document.getElementById('lockModalTitle').innerHTML = '<i class="bi bi-lock-fill text-rose-500 mr-2 text-2xl"></i> Khóa Tài Khoản';
+                document.getElementById('lockMessageContainer').classList.remove('hidden');
+                document.getElementById('unlockMessageContainer').classList.add('hidden');
+                document.getElementById('lock_message').value = (currentMsg === 'null' ? '' : currentMsg);
+                document.getElementById('lock_message').required = true;
+                
+                btn.className = 'px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-sm transition-all hover:scale-105 shadow-md uppercase tracking-widest';
+                btn.innerText = 'Khóa Ngay';
+            } else {              
+                document.getElementById('lockModalTitle').innerHTML = '<i class="bi bi-unlock-fill text-emerald-500 mr-2 text-2xl"></i> Mở Khóa Tài Khoản';
+                document.getElementById('lockMessageContainer').classList.add('hidden');
+                document.getElementById('unlockMessageContainer').classList.remove('hidden');
+                document.getElementById('lock_message').value = '';
+                document.getElementById('lock_message').required = false;
+                
+                btn.className = 'px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-sm transition-all hover:scale-105 shadow-md uppercase tracking-widest';
+                btn.innerText = 'Xác nhận mở khóa';
+            }
+            openModal('lockModal');
+        }
+
+        function openPwdModal(id, name) {
+            document.getElementById('pwdForm').action = `/admin/staff/change-password/${id}`;
+            document.getElementById('pwdModalStaffName').innerText = name;
+            document.querySelectorAll('#pwdForm input[type="password"]').forEach(el => el.value = '');
+            openModal('pwdModal');
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if(modal && typeof modal.showModal === 'function') {
+                modal.showModal();
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if(modal) {
+                modal.close();
+            }
+        }
+
+        document.querySelectorAll('dialog').forEach(dialog => {
+            dialog.addEventListener('close', () => {
+                document.body.style.overflow = '';
+            });
+        });
+
+        function showPwd(icon) {
+            icon.previousElementSibling.type = 'text';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+        function hidePwd(icon) {
+            icon.previousElementSibling.type = 'password';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        }
+        function validatePassword(form) {
+            if (form.new_password.value !== form.confirm_password.value) {
+                alert('🛑 Mật khẩu xác nhận không khớp! Vui lòng kiểm tra lại.');
+                return false;
+            }
+            return true;
+        }
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giám sát Đội nhóm - FTA CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 pb-20">
+
+<div class="max-w-5xl mx-auto p-4 md:p-6 md:pt-8">
+    
+    <div class="mb-4">
+        <a href="/staff" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-full font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
+            <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Về Menu
+        </a>
+    </div>
+
+    <div class="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-200 mb-8 flex items-center gap-4 bg-gradient-to-r from-amber-50 to-white">
+        <div class="w-16 h-16 bg-amber-500 rounded-[1.5rem] flex items-center justify-center text-white text-3xl shadow-lg shadow-amber-200 rotate-3">
+            <i class="bi bi-diagram-3-fill"></i>
+        </div>
+        <div>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight m-0">Quản lý Đội nhóm</h2>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Số liệu tháng <%= month %> / <%= year %></p>
+        </div>
+    </div>
+
+    <% if (!isLeader) { %>
+        <div class="text-center p-12 bg-white rounded-[3rem] border border-slate-200 shadow-sm">
+            <i class="bi bi-shield-lock-fill text-6xl text-slate-200 mb-4 block"></i>
+            <h3 class="text-xl font-black text-slate-800 mb-2">Bạn không có quyền truy cập</h3>
+            <p class="text-sm font-bold text-slate-400">Khu vực này chỉ dành cho Trưởng nhóm có nhân viên trực thuộc.</p>
+        </div>
+    <% } else { %>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <% teamMembers.forEach(member => { %>
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 hover:border-indigo-300 transition-colors group relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-slate-50 rounded-full group-hover:bg-indigo-50 transition-colors pointer-events-none"></div>
+                    
+                    <div class="relative z-10 flex items-center gap-4 mb-6">
+                        <img src="<%= member.avatar_url || '/img/default-avatar.png' %>" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md">
+                        <div>
+                            <h3 class="text-base font-black text-slate-800 m-0 line-clamp-1"><%= member.full_name %></h3>
+                            <a href="tel:<%= member.phone_1 %>" class="text-xs font-bold text-indigo-500 flex items-center gap-1 mt-1 hover:underline"><i class="bi bi-telephone-fill"></i> <%= member.phone_1 %></a>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 relative z-10">
+                        <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                            <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Khách mới</span>
+                            <span class="text-xl font-black text-indigo-600"><%= member.stats.new_cust %></span>
+                        </div>
+                        <div class="bg-emerald-50 rounded-2xl p-3 border border-emerald-100">
+                            <span class="block text-[10px] font-black text-emerald-600/70 uppercase tracking-widest mb-1">Dự Sự kiện</span>
+                            <span class="text-xl font-black text-emerald-600"><%= member.stats.attended %></span>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+</div>
+</body>
+</html>

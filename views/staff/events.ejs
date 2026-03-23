@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sự Kiện - FTA CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800 pb-20">
+    
+    <nav class="glass-header text-white px-4 py-3 shadow-lg sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex items-center gap-3 md:gap-4">
+            <a href="/staff" class="inline-flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all active:scale-95 shrink-0">
+                <i class="bi bi-arrow-left text-xl"></i>
+                <span class="text-sm font-black uppercase tracking-wider hidden md:block">Trở lại</span>
+            </a>
+            <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                <h1 class="font-black text-sm md:text-xl leading-none truncate shrink-0">Sự Kiện</h1>
+                <span class="text-white/40 font-light text-xl">|</span>
+                <div class="flex items-center gap-1.5 text-teal-100 min-w-0">
+                    <i class="bi bi-calendar-event-fill text-sm md:text-lg shrink-0"></i>
+                    <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest truncate">Danh sách sự kiện</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto p-4 md:p-6 mt-4">
+        <div class="relative 
+            <input type="text" id="search-event" onkeyup="searchItems()" placeholder="Tìm sự kiện, địa điểm..." 
+                   class="w-full pl-16 pr-6 py-5 bg-white rounded-[2rem] shadow-sm border border-slate-200 focus:border-rose-500 focus:ring-8 focus:ring-rose-500/10 outline-none transition-all font-bold text-slate-700 text-lg placeholder:font-medium">
+        </div>
+
+        <% if (events.length === 0) { %>
+            <div class="bg-white p-10 rounded-3xl shadow-sm border border-slate-200 text-center">
+                <i class="bi bi-calendar-x text-5xl text-slate-300 mb-3 block"></i>
+                <p class="text-slate-600 font-medium m-0">Chưa có sự kiện nào sắp tới.</p>
+            </div>
+        <% } else { %>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <% events.forEach(ev => { %>
+                    <a href="/staff/events/<%= ev.id %>" class="event-card bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-rose-500 hover:shadow-md hover:-translate-y-1 transition-all flex flex-col group">
+                        <h4 class="text-lg font-black text-slate-900 mb-3 mt-0 group-hover:text-rose-600 transition-colors"><%= ev.event_name %></h4>
+                        <div class="flex items-start gap-2 mb-1.5 text-sm text-slate-700"><i class="bi bi-geo-alt-fill text-rose-500 mt-0.5"></i> <span class="font-bold"><%= ev.location %></span></div>
+                        <div class="flex items-start gap-2 text-sm text-slate-700"><i class="bi bi-clock-fill text-amber-500 mt-0.5"></i> <span>Bắt đầu: <b class="text-slate-900"><%= formatDateTime(ev.start_time) %></b></span></div>
+                    </a>
+                <% }) %>
+            </div>
+        <% } %>
+    </div>
+
+    <script>
+        function searchItems() {
+            const keyword = document.getElementById('search-event').value.toLowerCase();
+            const items = document.querySelectorAll('.event-card');
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(keyword) ? 'flex' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

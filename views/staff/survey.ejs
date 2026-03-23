@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khảo Sát Khách Hàng - Staff</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800 pb-20">
+
+<nav class="glass-header text-white px-4 py-3 shadow-lg sticky top-0 z-50">
+    <div class="max-w-3xl mx-auto flex items-center gap-3 md:gap-4">
+        <a href="/staff" class="inline-flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all active:scale-95 shrink-0">
+            <i class="bi bi-arrow-left text-xl"></i>
+            <span class="text-sm font-black uppercase tracking-wider hidden md:block">Trở lại</span>
+        </a>
+        <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+            <h1 class="font-black text-sm md:text-xl leading-none truncate shrink-0">Phiếu Khảo Sát</h1>
+            <span class="text-white/40 font-light text-xl">|</span>
+            <div class="flex items-center gap-1.5 text-teal-100 min-w-0">
+                <i class="bi bi-ui-checks text-sm md:text-lg shrink-0"></i>
+                <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest truncate">Khảo sát mới</span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-3xl mx-auto p-4 md:p-6 mt-4">
+
+    <!-- NẾU CHƯA CHỌN BIỂU MẪU -> HIỂN THỊ DANH SÁCH CHỌN -->
+    <% if (!selectedTemplate) { %>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h4 class="font-bold text-lg mb-4 text-gray-800">Vui lòng chọn một biểu mẫu để khảo sát:</h4>
+            <% if(templates.length === 0) { %>
+                <p class="text-gray-500 italic">Hiện tại không có biểu mẫu nào đang hoạt động. Vui lòng liên hệ Admin.</p>
+            <% } else { %>
+                <div class="flex flex-col gap-3">
+                    <% templates.forEach(t => { %>
+                        <a href="/staff/survey?template_id=<%= t.id %>" class="block p-4 border border-gray-200 rounded-xl hover:border-amber-400 hover:bg-amber-50 transition-colors group">
+                            <strong class="block text-gray-800 group-hover:text-amber-700 text-lg"><%= t.title %></strong>
+                            <span class="text-sm text-gray-500 mt-1 block"><%= t.description || 'Không có mô tả' %></span>
+                        </a>
+                    <% }) %>
+                </div>
+            <% } %>
+        </div>
+    <% } else { %>
+        <!-- NẾU ĐÃ CHỌN BIỂU MẪU -> RENDER FORM -->
+        <div class="bg-amber-100 p-4 rounded-xl mb-6 border border-amber-200">
+            <h3 class="font-bold text-amber-800 m-0 text-lg">Đang khảo sát: <%= selectedTemplate.title %></h3>
+            <a href="/staff/survey" class="text-sm text-amber-700 underline mt-1 inline-block">Đổi biểu mẫu khác</a>
+        </div>
+
+        <form action="/staff/survey" method="POST" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+            <input type="hidden" name="template_id" value="<%= selectedTemplate.id %>">
+
+            <div>
+                <h4 class="font-bold text-lg text-slate-800 mb-3 border-b pb-2">1. Thông tin Khách Hàng</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Họ và tên *</label>
+                        <input type="text" name="full_name" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:bg-white focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Số điện thoại *</label>
+                        <input type="tel" name="phone_1" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:bg-white focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Ngày sinh (Không bắt buộc)</label>
+                        <input type="date" name="birthday" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:bg-white focus:border-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">CCCD (Không bắt buộc)</label>
+                        <input type="text" name="cccd" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:bg-white focus:border-amber-400">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-lg text-slate-800 mb-3 border-b pb-2">2. Nội dung Khảo Sát</h4>
+                <% 
+                    const questions = JSON.parse(selectedTemplate.form_structure || '[]');
+                    questions.forEach((q, qIndex) => { 
+                %>
+                    <div class="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <p class="font-bold text-gray-800 mb-3 text-base"><%= qIndex + 1 %>. <%= q.question %></p>
+                        <p class="text-xs text-amber-600 font-semibold mb-3 tracking-wide">(Chọn tối đa <%= q.max_choices %> đáp án)</p>
+                        
+                        <div class="space-y-2">
+                            <!-- Dùng name dạng array để gom nhóm kết quả khi submit -->
+                            <% q.options.forEach((opt, oIndex) => { %>
+                                <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-amber-300 transition-colors">
+                                    <!-- Nếu max_choices là 1, dùng Radio, nếu > 1 dùng Checkbox -->
+                                    <% if(q.max_choices == 1) { %>
+                                        <input type="radio" name="answers[<%= q.question %>]" value="<%= opt %>" required class="w-4 h-4 text-amber-500">
+                                    <% } else { %>
+                                        <!-- Gắn class checkbox để dùng JS limit max choices sau nếu cần -->
+                                        <input type="checkbox" name="answers[<%= q.question %>][]" value="<%= opt %>" class="w-4 h-4 text-amber-500 chk-group-<%= qIndex %>" onclick="limitCheckbox('<%= qIndex %>', <%= q.max_choices %>)">
+                                    <% } %>
+                                    <span class="text-gray-700 font-medium"><%= opt %></span>
+                                </label>
+                            <% }) %>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-lg shadow-md transition-all mt-4"><i class="bi bi-send-check-fill"></i> LƯU THÔNG TIN KHÁCH HÀNG & KHẢO SÁT</button>
+        </form>
+    <% } %>
+</div>
+<script>
+    function limitCheckbox(groupIndex, max) {
+        const checked = document.querySelectorAll(`.chk-group-${groupIndex}:checked`);
+        if(checked.length > max) { event.preventDefault(); alert(`Bạn chỉ được chọn tối đa ${max} đáp án cho câu hỏi này!`); }
+    }
+</script>
+</body>
+</html>

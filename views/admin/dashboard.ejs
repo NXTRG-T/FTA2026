@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - FTA CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/gridstack@8.2.1/dist/gridstack.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Hiệu ứng nhịp đập cho thông báo quan trọng */
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .pulse-today { animation: pulse-border 2s infinite; }
+        
+        /* Hiệu ứng Cực quang (Aurora) chuyển động mượt mà */
+        @keyframes aurora-1 {
+            0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+            50% { transform: translateY(-50px) scale(1.1) rotate(10deg); }
+        }
+        @keyframes aurora-2 {
+            0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+            50% { transform: translateY(50px) scale(0.9) rotate(-10deg); }
+        }
+        .bg-aurora-1 { animation: aurora-1 12s ease-in-out infinite; }
+        .bg-aurora-2 { animation: aurora-2 15s ease-in-out infinite reverse; }
+        .bg-aurora-3 { animation: aurora-1 10s ease-in-out infinite 2s; }
+        
+        /* Hiệu ứng bóng đổ phát sáng (Glow) cho Icon */
+        .glow-blue { filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6)); }
+        .glow-rose { filter: drop-shadow(0 0 15px rgba(244, 63, 94, 0.6)); }
+        .glow-amber { filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.6)); }
+        .glow-emerald { filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.6)); }
+        .glow-purple { filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.6)); }
+        .glow-cyan { filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.6)); }
+
+        .grid-stack-item-content { overflow: visible !important; }
+        /* Giữ giao diện mượt mà khi kéo thả */
+        .grid-stack-placeholder > .placeholder-content {
+            background: rgba(99, 102, 241, 0.1);
+            border: 2px dashed #6366f1;
+            border-radius: 2.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 pb-20 relative overflow-x-hidden min-h-screen">
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-fuchsia-400/30 rounded-full blur-[120px] bg-aurora-1 mix-blend-multiply"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-400/30 rounded-full blur-[100px] bg-aurora-2 mix-blend-multiply"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[60vw] h-[60vw] bg-amber-300/30 rounded-full blur-[120px] bg-aurora-3 mix-blend-multiply"></div>
+    </div>
+
+    <div class="max-w-[1440px] mx-auto p-4 md:p-6 md:pt-8 relative z-10">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-10 text-center md:text-left">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tight m-0 mb-2">
+                    Quản trị <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 via-fuchsia-500 to-orange-500">Trung tâm</span>
+                </h2>
+                <p class="text-slate-500 font-bold text-sm m-0">Chào mừng, <%= typeof full_name !== 'undefined' ? full_name : 'Admin' %>!</p>
+            </div>
+            <div class="flex gap-2 w-full md:w-auto">
+                <button id="btn-edit-mode" onclick="enableEditMode()" class="flex-1 md:flex-none px-6 py-3 bg-white/60 backdrop-blur-md border border-white/80 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95 hover:-translate-y-1 hover:shadow-md">
+                    <i class="bi bi-pencil-square"></i> Sửa Giao Diện
+                </button>
+                
+                <div id="edit-controls" class="hidden flex items-center gap-2 w-full md:w-auto animate-[fadeIn_0.3s_ease-out]">
+                    <button onclick="cancelEdit()" class="flex-1 md:flex-none px-4 py-3 bg-slate-100/80 backdrop-blur-md text-slate-600 hover:bg-slate-200 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 hover:-translate-y-1 hover:shadow-md">
+                        <i class="bi bi-x-lg"></i> Hủy
+                    </button>
+                    <button onclick="saveDashboardLayout()" class="flex-1 md:flex-none px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition-all active:scale-95 hover:-translate-y-1 hover:shadow-xl">
+                        <i class="bi bi-check-lg"></i> Lưu & Đóng
+                    </button>
+                </div>
+
+                <a href="/auth/logout" class="flex-1 md:flex-none px-6 py-3 bg-white/60 backdrop-blur-md border border-white/80 text-rose-600 hover:bg-rose-500 hover:text-white hover:border-rose-500 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-sm hover:-translate-y-1 hover:shadow-md active:scale-95">
+                    <i class="bi bi-box-arrow-right text-base"></i> Đăng Xuất
+                </a>
+            </div>
+        </div>
+
+        <div id="edit-banner" class="hidden mb-6 p-3 bg-amber-500/10 border border-amber-500/30 backdrop-blur-md text-amber-700 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center animate-pulse">
+            <i class="bi bi-info-circle-fill"></i> Chế độ chỉnh sửa đang bật: Kéo thả các khối hoặc kéo viền để đổi kích thước
+        </div>
+
+        <!-- Lưới Tính Năng: GridStack -->
+         
+        <div class="grid-stack mb-12">
+            
+            <div class="grid-stack-item" gs-id="widget_leaderboard" gs-x="0" gs-y="0" gs-w="4" gs-h="2">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/leaderboard" class="w-full h-full relative bg-white/60 backdrop-blur-2xl border border-white/80 p-6 md:p-8 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgba(245,158,11,0.15)] transition-shadow group overflow-hidden flex flex-col justify-between">
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-[1.5rem] flex items-center justify-center text-white text-3xl mb-4 shadow-lg glow-amber relative z-10 border border-white/20">
+                            <i class="bi bi-trophy-fill"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">Bảng Thi Đua</h3>
+                            <p class="text-slate-500 text-sm font-bold">Vinh danh thành tích & Bảng xếp hạng Gamification.</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_events" gs-x="4" gs-y="0" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/events" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(244,63,94,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-rose-400 to-red-500 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-rose border border-white/20">
+                            <i class="bi bi-calendar-event-fill"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Sự kiện</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_staff" gs-x="6" gs-y="0" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/staff-management" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(59,130,246,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-blue-500 to-cyan-400 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-blue border border-white/20">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Nhân sự</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_reports" gs-x="8" gs-y="0" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/reports" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(168,85,247,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-purple-500 to-fuchsia-400 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-purple border border-white/20">
+                            <i class="bi bi-bar-chart-line-fill"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Báo cáo</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_kpi" gs-x="10" gs-y="0" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/kpi-settings" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(16,185,129,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-emerald-400 to-teal-400 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-emerald border border-white/20">
+                            <i class="bi bi-sliders"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Luật KPI</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_notifications" gs-x="4" gs-y="1" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/notifications" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(6,182,212,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-cyan-400 to-blue-400 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-cyan border border-white/20">
+                            <i class="bi bi-bell-fill"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Thông báo</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_settings" gs-x="6" gs-y="1" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/settings" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(236,72,153,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-pink-500 to-rose-400 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-rose border border-white/20">
+                            <i class="bi bi-palette-fill"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Hệ thống</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_tags" gs-x="8" gs-y="1" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/tags" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(236,72,153,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-pink-400 to-rose-400 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-rose border border-white/20">
+                            <i class="bi bi-tags-fill"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Từ điển Tag</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_documents" gs-x="10" gs-y="1" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/documents" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(6,182,212,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-cyan-500 to-teal-400 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-cyan border border-white/20">
+                            <i class="bi bi-folder-fill"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Tài liệu</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_forms" gs-x="0" gs-y="2" gs-w="2" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/forms" class="w-full h-full block bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_30px_rgba(16,185,129,0.15)] transition-shadow group text-center">
+                        <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-emerald-500 to-green-400 text-white rounded-2xl flex items-center justify-center text-2xl mb-2 glow-emerald border border-white/20">
+                            <i class="bi bi-ui-checks"></i>
+                        </div>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-tight mb-1">Biểu mẫu</h3>
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid-stack-item" gs-id="widget_trash" gs-x="2" gs-y="2" gs-w="4" gs-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/admin/trash" class="w-full h-full bg-slate-800/80 backdrop-blur-2xl border border-slate-700 p-6 rounded-[2rem] shadow-lg hover:shadow-2xl transition-shadow group flex items-center justify-between overflow-hidden relative">
+                        <div class="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-rose-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                        <div class="flex items-center gap-5 relative z-10">
+                            <div class="w-14 h-14 bg-slate-700 text-rose-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+                                <i class="bi bi-trash-fill"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-black text-white uppercase tracking-tight mb-1">Thùng rác</h3>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Biểu đồ & Dữ liệu -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h3 class="text-xl font-black text-slate-800 m-0 uppercase tracking-widest flex items-center gap-2">
+                <i class="bi bi-bar-chart-line-fill text-indigo-500 glow-blue"></i> Phân tích Dữ liệu
+            </h3>
+            <select id="chartYearFilter" onchange="fetchChartData(this.value)" class="px-4 py-2 bg-white/60 backdrop-blur-md border border-white/80 rounded-xl font-black text-xs text-indigo-600 outline-none shadow-sm cursor-pointer hover:bg-white/80 transition-all hover:-translate-y-1 hover:shadow-md">
+                <option value="2026">Năm 2026</option>
+                <option value="2025">Năm 2025</option>
+                <option value="2024">Năm 2024</option>
+            </select>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12">
+            
+            <!-- Khối chứa 3 Biểu đồ -->
+            <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2 bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                    <h4 class="text-sm font-black text-slate-500 mb-4 uppercase tracking-widest text-center">Khách hàng mới gia nhập</h4>
+                    <div class="relative h-64 md:h-80 w-full">
+                        <canvas id="customerChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                    <h4 class="text-sm font-black text-slate-500 mb-4 uppercase tracking-widest text-center">Tỷ trọng Khách hàng</h4>
+                    <div class="relative flex-1 w-full min-h-[200px] flex items-center justify-center">
+                        <canvas id="tagChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                    <h4 class="text-sm font-black text-slate-500 mb-4 uppercase tracking-widest text-center">Khách dự Sự kiện</h4>
+                    <div class="relative h-64 w-full">
+                        <canvas id="eventChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Khối Sinh Nhật Sắp Tới -->
+            <div class="lg:col-span-1">
+                <div class="bg-white/60 backdrop-blur-2xl border border-white/80 p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+                    <h4 class="text-sm font-black text-slate-500 mb-6 uppercase tracking-widest flex items-center gap-2">
+                        <i class="bi bi-gift-fill text-rose-500 glow-rose"></i> Sinh nhật sắp tới
+                    </h4>
+                    
+                    <% if (typeof customers_birthday === 'undefined' || customers_birthday.length === 0) { %>
+                        <div class="text-center py-10">
+                            <i class="bi bi-calendar-x text-4xl text-slate-300 block mb-3"></i>
+                            <p class="text-slate-500 font-bold text-xs m-0">Không có khách hàng nào sắp sinh nhật trong tháng này.</p>
+                        </div>
+                    <% } else { %>
+                        <div class="space-y-4">
+                            <% customers_birthday.forEach(cust => {
+                                const d = new Date(cust.birthday);
+                                const bDayStr = `${(d.getDate() < 10 ? '0' : '') + d.getDate()}/${(d.getMonth() + 1 < 10 ? '0' : '') + (d.getMonth() + 1)}`;
+                                
+                                const today = new Date();
+                                const isToday = (d.getDate() === today.getDate() && d.getMonth() === today.getMonth());
+                            %>
+                                <div class="flex flex-col p-4 rounded-[1.5rem] border <%= isToday ? 'bg-rose-50/80 border-rose-200 pulse-today shadow-lg shadow-rose-200/50' : 'bg-white/50 border-white/60 shadow-sm hover:bg-white' %> backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <strong class="text-slate-900 font-black text-sm uppercase tracking-tight line-clamp-1 pr-2"><%= cust.full_name %></strong>
+                                        <span class="shrink-0 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm <%= isToday ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white' : 'bg-white text-slate-600 border border-slate-200' %>">
+                                            <%= isToday ? 'HÔM NAY 🎂' : bDayStr %>
+                                        </span>
+                                    </div>
+                                    <a href="tel:<%= cust.phone_1 %>" class="text-[11px] font-bold text-indigo-500 hover:text-indigo-700 flex items-center gap-1 transition-colors uppercase tracking-widest w-fit">
+                                        <i class="bi bi-telephone-fill"></i> <%= cust.phone_1 %>
+                                    </a>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@8.2.1/dist/gridstack-all.js"></script>
+
+    <script>
+        // --- GRIDSTACK LOGIC ---
+        let grid;
+        let tempLayout = null; 
+
+        // Âm thanh UI nhẹ nhàng
+        const clickSound = new Audio("data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
+        clickSound.volume = 0.5;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLayout = <%- typeof dashboard_layout !== 'undefined' ? dashboard_layout : '[]' %>;
+            
+            grid = GridStack.init({
+                cellHeight: '130px', 
+                margin: 10,          
+                animate: true,
+                staticGrid: true, // Mặc định khóa kéo thả
+                resizable: { handles: 'e, se, s, sw, w' }
+            });
+
+            if (savedLayout && savedLayout.length > 0) {
+                grid.load(savedLayout);
+            }
+        });
+
+        function playClick() { clickSound.play().catch(()=>{}); }
+
+        function enableEditMode() {
+            playClick();
+            tempLayout = grid.save(); // Lưu trạng thái hiện tại
+            grid.setStatic(false);    // Mở khóa Grid
+            
+            document.getElementById('btn-edit-mode').classList.add('hidden');
+            document.getElementById('edit-controls').classList.remove('hidden');
+            document.getElementById('edit-banner').classList.remove('hidden');
+            
+            document.querySelectorAll('.grid-stack-item-content').forEach(el => {
+                el.classList.add('ring-2', 'ring-indigo-400', 'ring-dashed');
+            });
+        }
+
+        function cancelEdit() {
+            playClick();
+            if (tempLayout) grid.load(tempLayout); // Phục hồi layout
+            disableEditMode();
+        }
+
+        function disableEditMode() {
+            grid.setStatic(true);
+            document.getElementById('btn-edit-mode').classList.remove('hidden');
+            document.getElementById('edit-controls').classList.add('hidden');
+            document.getElementById('edit-banner').classList.add('hidden');
+            
+            document.querySelectorAll('.grid-stack-item-content').forEach(el => {
+                el.classList.remove('ring-2', 'ring-indigo-400', 'ring-dashed');
+            });
+        }
+
+        async function saveDashboardLayout() {
+            playClick();
+            const currentLayout = grid.save();
+            try {
+                const response = await fetch('/admin/dashboard/save-layout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ layout: currentLayout })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    disableEditMode();
+                    alert('✅ Đã lưu cấu hình Dashboard thành công!');
+                }
+            } catch (error) {
+                alert('🛑 Lỗi kết nối, không thể lưu cấu hình.');
+            }
+        }
+
+        // Khai báo biến lưu trữ instance của biểu đồ để Xóa/Vẽ lại khi đổi năm
+        let chartInstances = {};
+
+        // Cấu hình phông chữ chung cho Chart.js
+        Chart.defaults.font.family = "'Nunito Sans', 'Inter', sans-serif";
+        Chart.defaults.font.weight = 'bold';
+        Chart.defaults.color = '#64748b'; // slate-500
+
+        // Hàm gọi API và vẽ biểu đồ
+        async function fetchChartData(year) {
+            try {
+                const response = await fetch(`/admin/api/dashboard-charts?year=${year}`);
+                const data = await response.json();
+
+                if(data.success) {
+                    renderCustomerChart(data.chartCustomer);
+                    renderTagChart(data.chartTags);
+                    renderEventChart(data.chartEvent);
+                }
+            } catch (error) {
+                console.error('Lỗi tải dữ liệu biểu đồ:', error);
+            }
+        }
+
+        // 1. Vẽ Biểu đồ Cột (Khách mới)
+        function renderCustomerChart(dataArray) {
+            const ctx = document.getElementById('customerChart').getContext('2d');
+            if(chartInstances.customer) chartInstances.customer.destroy(); // Hủy biểu đồ cũ
+
+            chartInstances.customer = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                    datasets: [{
+                        label: 'Số lượng hồ sơ',
+                        data: dataArray,
+                        backgroundColor: '#6366f1', // indigo-500
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+        }
+
+        // 2. Vẽ Biểu đồ Tròn (Tag)
+        function renderTagChart(tagData) {
+            const ctx = document.getElementById('tagChart').getContext('2d');
+            if(chartInstances.tag) chartInstances.tag.destroy();
+
+            // Nếu không có dữ liệu, tạo mảng rỗng
+            const hasData = tagData.data.length > 0;
+
+            chartInstances.tag = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: hasData ? tagData.labels : ['Chưa có dữ liệu'],
+                    datasets: [{
+                        data: hasData ? tagData.data : [1],
+                        backgroundColor: hasData ? tagData.colors : ['#e2e8f0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } }
+                    }
+                }
+            });
+        }
+
+        // 3. Vẽ Biểu đồ Đường (Sự kiện)
+        function renderEventChart(eventData) {
+            const ctx = document.getElementById('eventChart').getContext('2d');
+            if(chartInstances.event) chartInstances.event.destroy();
+
+            chartInstances.event = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                    datasets: [
+                        {
+                            label: 'Số vé Đã Mời',
+                            data: eventData.invited,
+                            borderColor: '#cbd5e1', // slate-300
+                            backgroundColor: '#cbd5e1',
+                            tension: 0.4, borderDash: [5, 5]
+                        },
+                        {
+                            label: 'Khách Đã Tham Dự',
+                            data: eventData.attended,
+                            borderColor: '#10b981', // emerald-500
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true, tension: 0.4, borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { position: 'top', align: 'end' } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+        }
+
+        // Khởi chạy vẽ biểu đồ ngay khi load xong trang (Mặc định lấy năm 2026)
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchChartData(2026);
+        });
+    </script>
+</body>
+</html>

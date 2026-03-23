@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Tài Liệu - FTA CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0ea5e9; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-gray-800 pb-20">
+
+    <div id="loading-overlay"><div class="spinner"></div></div>
+
+    <div class="max-w-[1400px] mx-auto p-4 md:p-6 md:pt-8">
+        
+        <div class="mb-4">
+            <a href="/admin/dashboard" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-cyan-400 text-slate-600 hover:text-cyan-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
+                <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Về Dashboard
+            </a>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 bg-white p-5 md:p-6 rounded-[2rem] shadow-sm border border-slate-200">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight m-0 flex items-center gap-2">
+                    <i class="bi bi-folder-fill text-cyan-500"></i> Quản Lý Tài Liệu
+                </h2>
+                <p class="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-1 m-0">Lưu trữ & Chia sẻ tệp tin nội bộ</p>
+            </div>
+            <div class="shrink-0">
+                <button class="px-6 py-3 bg-cyan-600 text-white hover:bg-cyan-700 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-cyan-200 hover:-translate-y-1" onclick="toggleEdit('add-doc-form')">
+                    <i class="bi bi-cloud-upload-fill text-base"></i> Thêm Tài Liệu
+                </button>
+            </div>
+        </div>
+
+        <div class="hidden bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8" id="add-doc-form">
+            <h4 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 mt-0">Thêm Tài Liệu Mới</h4>
+            <form action="/admin/documents/add" method="POST">
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tiêu đề tài liệu *</label>
+                    <input type="text" name="title" required placeholder="VD: Bảng giá sản phẩm Tháng 4..." class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 outline-none transition-colors">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Mô tả (Không bắt buộc)</label>
+                    <textarea name="description" rows="2" placeholder="Ghi chú ngắn gọn về tài liệu..." class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 outline-none transition-colors"></textarea>
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Link đính kèm (Google Drive, OneDrive...) *</label>
+                    <input type="url" name="file_link" required placeholder="https://drive.google.com/..." class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 outline-none transition-colors">
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold transition-colors flex justify-center items-center gap-2"><i class="bi bi-cloud-upload"></i> LƯU TÀI LIỆU</button>
+                    <button type="button" class="flex-1 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-bold transition-colors flex justify-center items-center gap-2" onclick="toggleEdit('add-doc-form')"><i class="bi bi-x-circle-fill"></i> HỦY BỎ</button>
+                </div>
+            </form>
+        </div>
+
+        <h4 class="text-lg font-bold text-gray-800 mb-4">KHO TÀI LIỆU NỘI BỘ (<%= documents.length %>)</h4>
+        
+        <div class="relative mb-6">
+            <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+            <input type="text" id="search-doc" placeholder="Tìm kiếm tài liệu..." onkeyup="searchItems('search-doc', '.doc-card')" class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-cyan-200 focus:border-cyan-500 outline-none bg-white shadow-sm transition-colors">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% documents.forEach(doc => { %>
+            <div class="doc-card bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-cyan-500 hover:shadow-md transition-all flex flex-col">
+                <h3 class="text-lg font-bold text-gray-800 mb-1"><i class="bi bi-file-earmark-text text-cyan-600"></i> <%= doc.title %></h3>
+                <div class="text-xs text-gray-500 mb-3"><i class="bi bi-clock"></i> Cập nhật: <%= formatDateTime(doc.updated_at) %></div>
+                
+                <% if(doc.description) { %>
+                    <div class="bg-slate-50 p-3 rounded-lg text-sm text-gray-600 mb-4 border border-gray-100 break-words"><%= doc.description %></div>
+                <% } %>
+
+                <a href="<%= doc.file_link %>" target="_blank" class="inline-flex items-center justify-center gap-2 w-full py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 rounded-lg text-sm font-bold transition-colors mb-4 mt-auto">
+                    <i class="bi bi-box-arrow-up-right"></i> Mở tài liệu
+                </a>
+
+                <div class="flex items-center justify-end gap-2 pt-4 border-t border-dashed border-gray-200">
+                    <button class="px-3 py-1.5 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-md text-sm font-semibold flex items-center gap-1 transition-colors" onclick="toggleEdit('edit-doc-<%= doc.id %>')"><i class="bi bi-pencil-square"></i> Sửa</button>
+                    <form action="/admin/documents/delete/<%= doc.id %>" method="POST" onsubmit="return confirm('Xác nhận xóa tài liệu này?');" class="m-0">
+                        <button type="submit" class="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-semibold flex items-center gap-1 transition-colors"><i class="bi bi-trash"></i> Xóa</button>
+                    </form>
+                </div>
+
+                <div class="hidden mt-4 pt-4 border-t border-gray-200" id="edit-doc-<%= doc.id %>">
+                    <form action="/admin/documents/edit/<%= doc.id %>" method="POST">
+                        <div class="mb-3">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Tiêu đề</label>
+                            <input type="text" name="title" value="<%= doc.title %>" required class="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-300 outline-none text-sm">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Mô tả</label>
+                            <textarea name="description" rows="2" class="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-300 outline-none text-sm"><%= doc.description %></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Link đính kèm</label>
+                            <input type="url" name="file_link" value="<%= doc.file_link %>" required class="w-full p-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-cyan-300 outline-none text-sm">
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                            <button type="submit" class="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white py-2 rounded-md font-bold text-sm transition-colors"><i class="bi bi-check-circle-fill"></i> LƯU</button>
+                            <button type="button" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-md font-bold text-sm transition-colors" onclick="toggleEdit('edit-doc-<%= doc.id %>')"><i class="bi bi-x-circle-fill"></i> HỦY</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        <% }) %>
+        </div>
+    </div>
+
+    <script>
+        function toggleEdit(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+
+        function searchItems(inputId, itemClass) {
+            const keyword = document.getElementById(inputId).value.toLowerCase();
+            const items = document.querySelectorAll(itemClass);
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(keyword) ? 'flex' : 'none';
+            });
+        }
+
+        // Hiển thị Loading...
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                setTimeout(() => { if (!e.defaultPrevented) document.getElementById('loading-overlay').style.display = 'flex'; }, 10);
+            });
+        });
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.target === '_blank' || !this.getAttribute('href') || this.getAttribute('href').startsWith('#') || this.href.includes('javascript:')) return;
+                document.getElementById('loading-overlay').style.display = 'flex';
+            });
+        });
+        window.addEventListener('pageshow', function () { document.getElementById('loading-overlay').style.display = 'none'; });
+    </script>
+</body>
+</html>

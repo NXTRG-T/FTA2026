@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Đã Xóa - FTA CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 pb-20">
+
+    <div class="max-w-[1440px] mx-auto p-4 md:p-6 md:pt-8">
+        
+        <div class="mb-4">
+            <a href="/admin/dashboard" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-rose-400 text-slate-600 hover:text-rose-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
+                <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Về Dashboard
+            </a>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-5 md:p-6 rounded-[2rem] shadow-sm border border-slate-200">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight m-0 flex items-center gap-2">
+                    <i class="bi bi-trash3-fill text-rose-500"></i> Thùng Rác Hệ Thống
+                </h2>
+                <p class="text-slate-500 font-bold text-[10px] uppercase tracking-widest mt-1 m-0">Khôi phục dữ liệu đã xóa</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm mb-8 border-t-4 border-t-amber-500">
+            <div class="p-6 border-b border-slate-100">
+                <h4 class="text-lg font-black text-slate-800 m-0 flex items-center gap-2">
+                    <i class="bi bi-person-x-fill text-amber-500"></i> Nhân Viên Bị Xóa 
+                    <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs"><%= deletedStaffs.length %></span>
+                </h4>
+            </div>
+            
+            <% if (deletedStaffs.length > 0) { %>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">
+                                <th class="px-6 py-5 pl-8">Thời gian xóa</th>
+                                <th class="px-6 py-5">Họ và tên</th>
+                                <th class="px-6 py-5">Tên đăng nhập</th>
+                                <th class="px-6 py-5 pr-8 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            <% deletedStaffs.forEach(staff => { %>
+                                <tr class="hover:bg-amber-50/30 transition-colors group">
+                                    <td class="px-6 py-4 pl-8 font-bold text-rose-500"><%= formatDateTime(staff.deleted_at) %></td>
+                                    <td class="px-6 py-4 font-black text-slate-800"><%= staff.full_name %></td>
+                                    <td class="px-6 py-4 font-bold text-slate-500">@<%= staff.username %></td>
+                                    <td class="px-6 py-4 pr-8 text-right">
+                                        <form action="/admin/staff/restore/<%= staff.id %>" method="POST" class="m-0 flex justify-end">
+                                            <button type="submit" class="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm">
+                                                <i class="bi bi-arrow-counterclockwise"></i> Khôi phục
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <div class="p-8 text-center text-slate-400 font-bold italic">Không có nhân viên nào trong thùng rác.</div>
+            <% } %>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm border-t-4 border-t-cyan-500">
+            <div class="p-6 border-b border-slate-100">
+                <h4 class="text-lg font-black text-slate-800 m-0 flex items-center gap-2">
+                    <i class="bi bi-person-vcard text-cyan-500"></i> Khách Hàng Bị Xóa 
+                    <span class="bg-cyan-100 text-cyan-700 px-3 py-1 rounded-full text-xs"><%= deletedCustomers.length %></span>
+                </h4>
+            </div>
+            
+            <% if (deletedCustomers.length > 0) { %>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr class="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">
+                                <th class="px-6 py-5 pl-8">Thời gian xóa</th>
+                                <th class="px-6 py-5">Tên khách hàng</th>
+                                <th class="px-6 py-5">Số điện thoại</th>
+                                <th class="px-6 py-5">Nhân viên quản lý</th>
+                                <th class="px-6 py-5 pr-8 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            <% deletedCustomers.forEach(cust => { %>
+                                <tr class="hover:bg-cyan-50/30 transition-colors group">
+                                    <td class="px-6 py-4 pl-8 font-bold text-rose-500"><%= formatDateTime(cust.deleted_at) %></td>
+                                    <td class="px-6 py-4 font-black text-slate-800"><%= cust.full_name %></td>
+                                    <td class="px-6 py-4 font-bold text-indigo-600"><%= cust.phone_1 %></td>
+                                    <td class="px-6 py-4 font-bold text-slate-600"><%= cust.staff_name || 'Hệ thống' %></td>
+                                    <td class="px-6 py-4 pr-8 text-right">
+                                        <form action="/admin/customers/restore/<%= cust.id %>" method="POST" class="m-0 flex justify-end">
+                                            <button type="submit" class="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm">
+                                                <i class="bi bi-arrow-counterclockwise"></i> Khôi phục
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <div class="p-8 text-center text-slate-400 font-bold italic">Không có khách hàng nào trong thùng rác.</div>
+            <% } %>
+        </div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Lượt Đọc - Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-50 font-sans text-gray-800 pb-20">
+
+<div class="max-w-5xl mx-auto p-4 md:p-6 md:pt-8">
+    
+    <div class="mb-4">
+        <a href="/admin/notifications" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-purple-400 text-slate-600 hover:text-purple-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
+            <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Trở về Thông báo
+        </a>
+    </div>
+
+    <div class="flex flex-col sm:flex-row justify-between gap-4 mb-8 bg-white p-5 md:p-6 rounded-[2rem] shadow-sm border border-slate-200">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight m-0 flex items-center gap-2">
+                <i class="bi bi-eye-fill text-purple-500"></i> Báo Cáo Lượt Đọc
+            </h2>
+            <p class="text-slate-500 font-bold text-xs mt-2 m-0 max-w-lg truncate"><span class="text-indigo-600">"<%= noti.title %>"</span></p>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button onclick="copyTableToClipboard()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm">
+                <i class="bi bi-clipboard"></i> Copy Bảng
+            </button>
+            <button onclick="exportToExcel()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-emerald-200 hover:-translate-y-1">
+                <i class="bi bi-file-earmark-spreadsheet-fill"></i> Xuất Excel
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500 flex flex-col justify-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest m-0 mb-1">Tổng nhân sự</p>
+            <h3 class="text-2xl font-black text-slate-800 m-0"><%= stats.total %></h3>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500 flex flex-col justify-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest m-0 mb-1">Đã tiếp nhận</p>
+            <h3 class="text-2xl font-black text-emerald-600 m-0"><%= stats.read_count %></h3>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-rose-500 flex flex-col justify-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest m-0 mb-1">Chưa xem</p>
+            <h3 class="text-2xl font-black text-rose-600 m-0"><%= stats.unread_count %></h3>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-purple-500 flex flex-col justify-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest m-0 mb-1">Tỷ lệ xem</p>
+            <h3 class="text-2xl font-black text-purple-600 m-0"><%= stats.total > 0 ? Math.round((stats.read_count / stats.total) * 100) : 0 %>%</h3>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h4 class="text-lg font-black text-slate-800 m-0">Chi tiết phản hồi từ nhân viên</h4>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table id="reportTable" class="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                    <tr class="bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-200">
+                        <th class="px-6 py-5 pl-8">Họ và Tên</th>
+                        <th class="px-6 py-5">MSKD</th>
+                        <th class="px-6 py-5">Khu vực</th>
+                        <th class="px-6 py-5">SĐT</th>
+                        <th class="px-6 py-5 pr-8">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    <% reads.forEach(r => { %>
+                        <tr class="hover:bg-purple-50/30 transition-colors">
+                            <td class="px-6 py-4 pl-8 font-black text-slate-800"><%= r.full_name %></td>
+                            <td class="px-6 py-4 font-bold text-slate-600"><%= r.business_code || '---' %></td>
+                            <td class="px-6 py-4 font-bold text-slate-600"><%= r.work_area || '---' %></td>
+                            <td class="px-6 py-4 font-bold text-indigo-600"><%= r.phone_1 %></td>
+                            <td class="px-6 py-4 pr-8">
+                                <% if (r.is_read == 1) { %>
+                                    <span class="px-3 py-1.5 bg-emerald-100 text-emerald-700 font-black text-[10px] uppercase tracking-widest rounded-lg border border-emerald-200 shadow-sm"><i class="bi bi-check2-all"></i> Đã đọc</span>
+                                <% } else { %>
+                                    <span class="px-3 py-1.5 bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest rounded-lg border border-slate-200 shadow-sm"><i class="bi bi-clock-history"></i> Chưa xem</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+    // Logic Copy Bảng 
+    function copyTableToClipboard() {
+        const table = document.getElementById('reportTable');
+        const range = document.createRange();
+        range.selectNode(table);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        try {
+            document.execCommand('copy');
+            alert('Đã sao chép dữ liệu bảng thành công!');
+        } catch (err) {
+            alert('Trình duyệt không hỗ trợ sao chép tự động!');
+        }
+        window.getSelection().removeAllRanges();
+    }
+
+    // Logic Xuất Excel (.xlsx) chuẩn
+    function exportToExcel() {
+        let data = [];
+        const headers = Array.from(document.querySelectorAll("#reportTable thead th"))
+            .map(th => th.innerText.trim());
+        data.push(headers);
+
+        const rows = document.querySelectorAll("#reportTable tbody tr");
+        rows.forEach(row => {
+            const rowData = Array.from(row.querySelectorAll("td"))
+                .map(td => {
+                    let text = td.innerText.trim();
+                    if (text.match(/^0\d{8,10}$/)) return `'${text}`; // Giữ số 0 đằng trước SĐT
+                    return text;
+                });
+            data.push(rowData);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "LuotDoc");
+
+        const colWidths = headers.map(h => ({ wch: Math.max(h.length + 5, 15) }));
+        ws['!cols'] = colWidths;
+
+        const fileName = `Bao_Cao_Luot_Doc_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    }
+</script>
+</body>
+</html>

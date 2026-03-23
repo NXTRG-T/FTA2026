@@ -1,0 +1,19 @@
+# Thư viện Node.js
+node_modules/
+
+# File cấu hình biến môi trường (Chứa mật khẩu DB, Session Secret)
+.env
+
+# Thư mục chứa file người dùng tải lên
+public/uploads/
+/public/uploads/system/
+/public/uploads/avatars/
+
+# File log
+npm-debug.log
+yarn-error.log
+
+# Cấu hình IDE / OS
+.vscode/
+.idea/
+.DS_Store

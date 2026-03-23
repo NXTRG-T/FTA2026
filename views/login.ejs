@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác thực Hệ thống - FTA CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+        .cyber-border {
+            position: relative;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+        }
+        /* Hiệu ứng luồng sáng chạy quanh viền */
+        .cyber-border::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(transparent, transparent, transparent, #6366f1);
+            animation: rotate 4s linear infinite;
+            z-index: -1;
+        }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-[#0f172a] font-sans text-slate-200 min-h-screen flex items-center justify-center p-4 relative">
+
+    <div class="absolute top-6 left-6 z-20">
+        <a href="/" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest transition-all group">
+            <i class="bi bi-house-door text-indigo-400 group-hover:-translate-y-0.5 transition-transform"></i>
+            Trang chủ
+        </a>
+    </div>
+
+    <div class="fixed inset-0 overflow-hidden -z-10">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="w-full max-w-[440px] relative">
+        <div class="cyber-border p-[1px] rounded-[2.5rem]">
+            <div class="bg-[#0f172a] rounded-[2.5rem] p-8 md:p-12">
+                
+                <div class="flex flex-col items-center mb-10">
+                    <div class="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-4 border border-white/10 shadow-2xl">
+                        <img src="/img/logo.png" alt="BRICS Logo" class="w-14 h-14 object-contain" onerror="this.src='https://placehold.co/100x100?text=BRICS'">
+                    </div>
+                    <h2 class="text-2xl font-black tracking-tighter text-white uppercase">Hệ thống <span class="text-indigo-500">FTA</span></h2>
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-1">Đăng nhập thành viên</p>
+                </div>
+
+                <% if (typeof error !== 'undefined' && error) { %>
+                    <div class="animate-shake mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400 text-sm font-medium">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <%= error %>
+                    </div>
+                <% } %>
+
+                <form action="/auth/login" method="POST" class="space-y-5">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Tên đăng nhập</label>
+                        <div class="relative group">
+                            <i class="bi bi-person absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                            <input type="text" name="username" required placeholder="Nhập mã nhân viên..." 
+                                   class="w-full pl-12 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white/10 transition-all font-medium placeholder:text-slate-700">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2">Mật khẩu</label>
+                        <div class="relative group">
+                            <i class="bi bi-shield-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
+                            <input type="password" name="password" required placeholder="••••••••" 
+                                   class="w-full pl-12 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white/10 transition-all font-medium placeholder:text-slate-700">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-6 px-2">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-0 focus:ring-offset-0 transition-all cursor-pointer">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-300 transition-colors">Ghi nhớ tài khoản</span>
+                        </label>
+                        <a href="#" class="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors">Quên mật khẩu?</a>
+                    </div>
+
+                    <button type="submit" class="w-full py-5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-500/20 active:scale-95 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2 group/btn">
+                        Vào hệ thống <i class="bi bi-arrow-right-short text-2xl group-hover/btn:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+
+                <div class="mt-8 pt-6 border-t border-white/5 flex justify-center">
+                    <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">© <%= new Date().getFullYear() %> BRICS VIETNAM</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.querySelector('form');
+            const usernameInput = document.querySelector('input[name="username"]');
+            const passwordInput = document.querySelector('input[name="password"]');
+            const rememberCheckbox = document.getElementById('rememberMe');
+
+            // 1. Kiểm tra xem có tài khoản đã lưu hay chưa
+            const savedUsername = localStorage.getItem('fta_crm_remembered_user');
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
+                rememberCheckbox.checked = true;
+                // Tự động focus vào ô mật khẩu nếu đã có tên đăng nhập
+                passwordInput.focus();
+            }
+
+            // 2. Xử lý sự kiện khi nhấn Đăng nhập
+            loginForm.addEventListener('submit', () => {
+                if (rememberCheckbox.checked) {
+                    localStorage.setItem('fta_crm_remembered_user', usernameInput.value);
+                } else {
+                    localStorage.removeItem('fta_crm_remembered_user');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

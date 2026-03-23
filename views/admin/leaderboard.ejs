@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Xếp Hạng - FTA CRM</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Hiệu ứng nổi bật cho bục vinh quang */
+        .podium-1 { height: 220px; background: linear-gradient(to top, #fbbf24, #fcd34d); } /* Vàng */
+        .podium-2 { height: 170px; background: linear-gradient(to top, #94a3b8, #cbd5e1); } /* Bạc */
+        .podium-3 { height: 140px; background: linear-gradient(to top, #d97706, #f59e0b); } /* Đồng */
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 pb-20">
+
+<div class="max-w-4xl mx-auto p-4 md:p-6 md:pt-8">
+
+    <div class="text-center mb-10 relative">
+        <a href="<%= typeof userRole !== 'undefined' && userRole === 'Staff' ? '/staff' : '/admin/dashboard' %>" class="absolute left-0 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-10 h-10 bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 rounded-full shadow-sm transition-all"><i class="bi bi-house-door-fill"></i></a>
+        
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-[2rem] shadow-lg shadow-amber-200 mb-4 rotate-3">
+            <i class="bi bi-trophy-fill text-4xl text-white"></i>
+        </div>
+        <h1 class="text-3xl font-black text-slate-900 uppercase tracking-tight m-0">Bảng Vàng Thi Đua</h1>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2">Tháng <%= month %> / <%= year %></p>
+    </div>
+
+    <% if(!config || !config.is_published) { %>
+        <div class="text-center p-12 bg-white rounded-[3rem] border border-slate-200 shadow-sm">
+            <i class="bi bi-eye-slash-fill text-6xl text-slate-200 mb-4 block"></i>
+            <h3 class="text-xl font-black text-slate-800 mb-2">Bảng xếp hạng đang ẩn</h3>
+            <p class="text-sm font-bold text-slate-400">Admin chưa công khai số liệu của tháng này.</p>
+        </div>
+    <% } else if(leaderboard.length === 0) { %>
+        <div class="text-center p-12 bg-white rounded-[3rem] border border-slate-200 shadow-sm">
+            <p class="text-sm font-bold text-slate-400">Chưa có dữ liệu điểm số trong tháng này.</p>
+        </div>
+    <% } else { %>
+
+        <div class="flex justify-center items-end gap-2 sm:gap-4 mb-12 px-2 mt-20">
+            
+            <% if(leaderboard[1]) { %>
+                <div class="w-1/3 max-w-[140px] flex flex-col items-center relative">
+                    <div class="absolute -top-16 z-10 flex flex-col items-center">
+                        <img src="<%= leaderboard[1].avatar_url || '/img/default-avatar.png' %>" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-slate-200 object-cover shadow-lg">
+                        <div class="mt-2 text-center">
+                            <p class="text-xs sm:text-sm font-black text-slate-800 line-clamp-1"><%= leaderboard[1].full_name %></p>
+                            <p class="text-[10px] font-bold text-slate-500"><%= leaderboard[1].total_points %> Điểm</p>
+                        </div>
+                    </div>
+                    <div class="w-full podium-2 rounded-t-2xl shadow-lg border-t border-white/50 flex justify-center pt-4 relative overflow-hidden">
+                        <span class="text-4xl font-black text-white/50 drop-shadow-md">2</span>
+                    </div>
+                </div>
+            <% } %>
+
+            <% if(leaderboard[0]) { %>
+                <div class="w-1/3 max-w-[160px] flex flex-col items-center relative z-20">
+                    <i class="bi bi-star-fill absolute -top-28 text-amber-400 text-3xl animate-pulse"></i>
+                    <div class="absolute -top-20 z-10 flex flex-col items-center">
+                        <img src="<%= leaderboard[0].avatar_url || '/img/default-avatar.png' %>" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-amber-400 object-cover shadow-xl shadow-amber-200/50">
+                        <div class="mt-2 text-center bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-100 shadow-sm">
+                            <p class="text-sm sm:text-base font-black text-slate-900 line-clamp-1"><%= leaderboard[0].full_name %></p>
+                            <p class="text-xs font-black text-amber-600"><%= leaderboard[0].total_points %> ĐIỂM</p>
+                        </div>
+                    </div>
+                    <div class="w-full podium-1 rounded-t-3xl shadow-xl border-t border-white/50 flex justify-center pt-4 relative overflow-hidden">
+                        <span class="text-5xl font-black text-white/50 drop-shadow-md">1</span>
+                    </div>
+                </div>
+            <% } %>
+
+            <% if(leaderboard[2]) { %>
+                <div class="w-1/3 max-w-[140px] flex flex-col items-center relative">
+                    <div class="absolute -top-16 z-10 flex flex-col items-center">
+                        <img src="<%= leaderboard[2].avatar_url || '/img/default-avatar.png' %>" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-amber-600 object-cover shadow-lg">
+                        <div class="mt-2 text-center">
+                            <p class="text-xs sm:text-sm font-black text-slate-800 line-clamp-1"><%= leaderboard[2].full_name %></p>
+                            <p class="text-[10px] font-bold text-slate-500"><%= leaderboard[2].total_points %> Điểm</p>
+                        </div>
+                    </div>
+                    <div class="w-full podium-3 rounded-t-2xl shadow-lg border-t border-white/50 flex justify-center pt-4 relative overflow-hidden">
+                        <span class="text-4xl font-black text-white/50 drop-shadow-md">3</span>
+                    </div>
+                </div>
+            <% } %>
+
+        </div>
+
+        <% const limit = config.top_display_limit || 10; %>
+        <% if(leaderboard.length > 3) { %>
+            <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 p-2 sm:p-4 overflow-hidden">
+                <div class="space-y-2">
+                    <% for(let i=3; i < Math.min(leaderboard.length, limit); i++) { %>
+                        <% const staff = leaderboard[i]; %>
+                        <div class="flex items-center justify-between p-3 sm:p-4 hover:bg-slate-50 rounded-2xl transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-black text-sm flex items-center justify-center border border-slate-200 shrink-0">
+                                    <%= staff.rank %>
+                                </div>
+                                <img src="<%= staff.avatar_url || '/img/default-avatar.png' %>" class="w-10 h-10 rounded-full object-cover shadow-sm shrink-0">
+                                <div>
+                                    <h4 class="font-black text-slate-800 text-sm m-0 line-clamp-1"><%= staff.full_name %></h4>
+                                    <% if(staff.team_bonus > 0) { %>
+                                        <span class="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 uppercase tracking-widest"><i class="bi bi-diagram-3-fill"></i> Sếp: +<%= staff.team_bonus %></span>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-black text-indigo-600 text-lg"><%= staff.total_points %></span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase block">Điểm</span>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+
+    <% } %>
+</div>
+</body>
+</html>
