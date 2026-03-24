@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Thi Đua</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .glass-header { background: rgba(13, 148, 136, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        .card-custom { border-radius: 2.5rem; border: 1px solid rgba(226, 232, 240, 0.8); transition: all 0.3s ease; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Hiệu ứng màu sắc huy chương */
+        .rank-1 { background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); color: #fff; box-shadow: 0 10px 20px -5px rgba(253, 185, 49, 0.4); }
+        .rank-2 { background: linear-gradient(135deg, #E0E1E4 0%, #B8BCC6 100%); color: #475569; box-shadow: 0 10px 20px -5px rgba(184, 188, 198, 0.4); }
+        .rank-3 { background: linear-gradient(135deg, #FAD9C1 0%, #E2945D 100%); color: #fff; box-shadow: 0 10px 20px -5px rgba(226, 148, 93, 0.4); }
+    </style>
+</head>
+
+<body class="text-slate-800 pb-20">
+
+    <nav class="glass-header text-white px-4 py-3 shadow-lg sticky top-0 z-50">
+        <div class="max-w-[1200px] mx-auto flex items-center gap-3 md:gap-4">
+            <a href="/staff" class="inline-flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all active:scale-95 shrink-0">
+                <i class="bi bi-arrow-left text-xl"></i>
+                <span class="text-sm font-black uppercase tracking-wider block">Trở lại</span>
+            </a>
+            <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                <h1 class="font-black text-sm md:text-xl leading-none truncate shrink-0">Bảng Thi Đua</h1>
+                <span class="text-white/40 font-light text-xl">|</span>
+                <div class="flex items-center gap-1.5 text-teal-100 min-w-0">
+                    <i class="bi bi-trophy-fill text-sm md:text-lg shrink-0"></i>
+                    <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest truncate">Vinh danh thành tích</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-[1200px] mx-auto p-4 md:p-6 lg:p-8 space-y-8">
+        
+        <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-[2.5rem] p-8 md:p-10 text-white shadow-xl shadow-amber-500/20 relative overflow-hidden flex items-center justify-between">
+            <div class="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <div class="relative z-10 max-w-lg">
+                <h2 class="text-3xl md:text-4xl font-black mb-2 tracking-tight">Đường Đua Doanh Số</h2>
+                <p class="text-amber-100 font-bold text-sm md:text-base">Nỗ lực mỗi ngày, vinh quang chờ đón. Theo dõi thứ hạng của bạn ngay hôm nay!</p>
+            </div>
+            <div class="hidden md:flex relative z-10 text-7xl opacity-90 drop-shadow-lg">
+                <i class="bi bi-award-fill"></i>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
+                <i class="bi bi-flag-fill text-rose-500"></i> Chọn chiến dịch
+            </h3>
+            <div class="flex overflow-x-auto no-scrollbar gap-4 pb-4">
+                <% programs.forEach(program => { 
+                    const isActive = selectedProgramId == program.id;
+                    const statusClass = new Date() >= new Date(program.start_date) && new Date() <= new Date(program.end_date) ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500';
+                    const statusText = new Date() >= new Date(program.start_date) && new Date() <= new Date(program.end_date) ? 'Đang diễn ra' : 'Đã kết thúc';
+                %>
+                    <a href="/staff/leaderboard?program_id=<%= program.id %>" 
+                       class="shrink-0 w-64 p-5 rounded-[2rem] border-2 transition-all duration-300 <%= isActive ? 'border-amber-400 bg-amber-50 shadow-md' : 'border-slate-100 bg-white hover:border-amber-200' %>">
+                        <span class="inline-block px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest mb-3 <%= statusClass %>">
+                            <%= statusText %>
+                        </span>
+                        <h4 class="font-black text-slate-800 text-base leading-tight mb-1 truncate"><%= program.title %></h4>
+                        <p class="text-[10px] font-bold text-slate-400"><%= new Date(program.start_date).toLocaleDateString('vi-VN') %> - <%= new Date(program.end_date).toLocaleDateString('vi-VN') %></p>
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+
+        <% if (rankings && rankings.length > 0) { %>
+            <div class="card-custom bg-white p-6 md:p-8">
+                <div class="text-center mb-10">
+                    <h3 class="text-2xl font-black text-slate-900 mb-2">Bảng Xếp Hạng</h3>
+                    <p class="text-slate-500 font-bold text-sm">Chiến dịch: <span class="text-amber-600"><%= currentProgram.title %></span></p>
+                </div>
+
+                <div class="space-y-4">
+                    <% rankings.forEach((staff, index) => { 
+                        let rankClass = "bg-slate-50 border-slate-100 text-slate-700";
+                        let rankIcon = `<span class="text-lg font-black text-slate-400">#${index + 1}</span>`;
+                        
+                        if (index === 0) { rankClass = "rank-1"; rankIcon = '<i class="bi bi-trophy-fill text-2xl"></i>'; }
+                        else if (index === 1) { rankClass = "rank-2"; rankIcon = '<i class="bi bi-award-fill text-2xl"></i>'; }
+                        else if (index === 2) { rankClass = "rank-3"; rankIcon = '<i class="bi bi-award-fill text-2xl"></i>'; }
+                    %>
+                        <div class="flex items-center justify-between p-4 md:p-5 rounded-2xl border transition-all duration-300 <%= rankClass %> <%= index > 2 ? 'hover:bg-slate-100 hover:border-slate-300' : '' %>">
+                            
+                            <div class="flex items-center gap-4 md:gap-6">
+                                <div class="w-10 text-center shrink-0"><%- rankIcon %></div>
+                                <img src="<%= staff.avatar_url || '/img/default-avatar.png' %>" alt="Avatar" class="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-white/50 shadow-sm">
+                                <div>
+                                    <h4 class="font-black text-base md:text-lg m-0 leading-tight"><%= staff.full_name %></h4>
+                                    <p class="text-[10px] md:text-xs font-bold uppercase tracking-widest mt-0.5 opacity-80"><%= staff.business_code || 'Nhân viên kinh doanh' %></p>
+                                </div>
+                            </div>
+
+                            <div class="text-right">
+                                <span class="block text-2xl md:text-3xl font-black leading-none drop-shadow-sm"><%= staff.total_points %></span>
+                                <span class="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-80">Điểm</span>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+        <% } else { %>
+            <div class="card-custom bg-white p-12 text-center">
+                <i class="bi bi-stars text-6xl text-slate-200 block mb-4"></i>
+                <h3 class="text-xl font-black text-slate-800">Chưa có dữ liệu xếp hạng</h3>
+                <p class="text-slate-500 font-bold mt-2">Chưa có nhân viên nào ghi điểm trong chiến dịch này. Hãy là người đầu tiên!</p>
+            </div>
+        <% } %>
+
+    </main>
+</body>
+</html>

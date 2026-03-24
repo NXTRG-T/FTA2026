@@ -7,6 +7,8 @@ const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
 const xlsx = require('xlsx'); // Thêm dòng này ở đầu file, cạnh các thư viện khác
+const customerController = require('../controllers/customerController');
+const { processKpiPoints } = require('../views/services/kpiService');
 
 // Cấu hình Multer cho Staff (Giới hạn 2MB để chống up file quá nặng)
 const upload = multer({ 
@@ -275,11 +277,47 @@ router.post('/customers/:id/invite', isStaff, async (req, res) => {
 // 7b. TÍNH NĂNG MỚI: Xử lý Cập nhật thẻ Điểm danh (Đã tham dự / Không tham dự...)
 router.post('/customers/:customer_id/events/:event_id/update-status', isStaff, async (req, res) => {
     const { attendance_status } = req.body;
+    const customerId = req.params.customer_id;
+    const eventId = req.params.event_id;
+
     try {
+        // 1. Lấy trạng thái cũ trước khi cập nhật
+        const [oldRecord] = await db.execute(`SELECT status FROM Event_Participants WHERE customer_id = ? AND event_id = ?`, [customerId, eventId]);
+        const oldStatus = oldRecord.length > 0 ? oldRecord[0].status : null;
+
+        // 2. Cập nhật trạng thái mới
         await db.execute(
             'UPDATE Event_Participants SET status = ? WHERE customer_id = ? AND event_id = ?',
-            [attendance_status, req.params.customer_id, req.params.event_id]
+            [attendance_status, customerId, eventId]
         );
+
+        // ==========================================
+        // LOGIC XỬ LÝ ĐIỂM KPI (EVENT)
+        // ==========================================
+        const [customer] = await db.execute(`SELECT staff_id FROM Customers WHERE id = ?`, [customerId]);
+        const staff_id = customer[0]?.staff_id;
+
+        const [events] = await db.execute(`SELECT * FROM Events WHERE id = ?`, [eventId]);
+        const customEventPoint = events[0]?.kpi_points || 0; // Tương thích trường hợp sự kiện có điểm Custom
+
+        if (staff_id) {
+            if (attendance_status === 'Đã tham dự' && oldStatus !== 'Đã tham dự') {
+                await processKpiPoints(staff_id, 'EVENT_ATTEND', eventId, customEventPoint);
+            } else if (oldStatus === 'Đã tham dự' && attendance_status !== 'Đã tham dự') {
+                const [oldLogs] = await db.execute(`
+                    SELECT * FROM kpi_score_logs 
+                    WHERE reference_id = ? AND action_type = 'EVENT_ATTEND' AND staff_id = ? AND points_changed > 0
+                `, [eventId, staff_id]);
+
+                for (const log of oldLogs) {
+                    await db.execute(`
+                        INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    `, [log.staff_id, log.kpi_program_id, 'REVERT_EVENT', eventId, -log.points_changed, `Thu hồi điểm do hủy trạng thái Đã tham dự sự kiện`]);
+                }
+            }
+        }
+
         res.redirect(`/staff/customers/${req.params.customer_id}/invite`);
     } catch (err) {
         console.error(err);
@@ -557,89 +595,44 @@ router.get('/my-team', isStaff, async (req, res) => {
 // BẢNG XẾP HẠNG THI ĐUA (Dành cho Staff)
 // ==========================================
 
-// Helper tính toán điểm số (Sử dụng chung cấu trúc với Admin)
-async function calculateLeaderboard(month, year) {
-    const [configs] = await db.execute('SELECT * FROM KPI_Configs WHERE month = ? AND year = ?', [month, year]);
-    if (configs.length === 0) return { config: null, leaderboard: [], teams: [] };
-    const config = configs[0];
-
-    const [kpiEvents] = await db.execute('SELECT event_id FROM KPI_Config_Events WHERE config_id = ?', [config.id]);
-    const validEventIds = kpiEvents.map(e => e.event_id);
-    const eventFilter = validEventIds.length > 0 ? `AND ep.event_id IN (${validEventIds.join(',')})` : `AND 1=0`;
-
-    const sql = `
-        SELECT 
-            u.id, u.full_name, u.avatar_url, u.leader_id,
-            (SELECT COUNT(*) FROM Event_Participants ep JOIN Customers c ON ep.customer_id = c.id WHERE c.staff_id = u.id AND ep.status = 'Đã tham dự' ${eventFilter}) as event_count,
-            (SELECT COUNT(*) FROM Surveys s JOIN Customers c ON s.customer_id = c.id WHERE c.staff_id = u.id AND MONTH(s.completed_at) = ? AND YEAR(s.completed_at) = ?) as survey_count,
-            (SELECT COUNT(*) FROM Customers c2 WHERE c2.staff_id = u.id AND MONTH(c2.created_at) = ? AND YEAR(c2.created_at) = ? AND c2.is_deleted = 0) as new_cust_count
-        FROM Users u 
-        WHERE u.role = 'Staff' AND u.is_deleted = 0
-    `;
-    
-    const [staffStats] = await db.execute(sql, [month, year, month, year]);
-
-    let staffList = staffStats.map(staff => {
-        const p_events = staff.event_count * config.point_per_attended_event;
-        const p_surveys = staff.survey_count * config.point_per_survey;
-        const p_customers = staff.new_cust_count * config.point_per_new_customer;
-        return {
-            ...staff,
-            personal_points: p_events + p_surveys + p_customers,
-            team_bonus: 0,
-            total_points: 0
-        };
-    });
-
-    staffList.forEach(leader => {
-        const teamMembers = staffList.filter(sub => sub.leader_id === leader.id);
-        if (teamMembers.length > 0) {
-            const teamTotalPoints = teamMembers.reduce((sum, sub) => sum + sub.personal_points, 0);
-            leader.team_bonus = Math.round(teamTotalPoints * config.tl_coefficient);
-        }
-        leader.total_points = leader.personal_points + leader.team_bonus;
-    });
-
-    staffList.sort((a, b) => b.total_points - a.total_points);
-
-    let currentRank = 1;
-    for (let i = 0; i < staffList.length; i++) {
-        if (i > 0 && staffList[i].total_points < staffList[i-1].total_points) {
-            currentRank = i + 1;
-        }
-        staffList[i].rank = currentRank;
-    }
-
-    return { config, leaderboard: staffList };
-}
-
 router.get('/leaderboard', isStaff, async (req, res) => {
     try {
-        const month = new Date().getMonth() + 1;
-        const year = new Date().getFullYear();
-
-        // 1. Kiểm tra cấu hình tháng hiện tại xem Admin có cho phép công khai không
-        const [configs] = await db.execute('SELECT * FROM KPI_Configs WHERE month = ? AND year = ?', [month, year]);
-        const config = configs.length > 0 ? configs[0] : null;
-
-        // Nếu chưa có cấu hình hoặc Admin đang Tắt công khai (is_published = 0)
-        if (!config || config.is_published === 0) {
-            return res.render('admin/leaderboard', { 
-                month, year, 
-                config: { is_published: 0 }, // Giả lập để UI ẩn bảng xếp hạng
-                leaderboard: [],
-                userRole: 'Staff'
-            });
+        // 1. Lấy danh sách tất cả các chương trình KPI (programs)
+        const [programs] = await db.execute('SELECT * FROM kpi_programs ORDER BY created_at DESC');
+        
+        // 2. Xác định chương trình đang được chọn (ưu tiên query params, nếu không có thì lấy cái đầu tiên)
+        let selectedProgramId = req.query.program_id;
+        if (!selectedProgramId && programs.length > 0) {
+            selectedProgramId = programs[0].id;
         }
 
-        // 2. Tính toán và truyền dữ liệu ra màn hình (Staff dùng chung file View với Admin)
-        const data = await calculateLeaderboard(month, year);
-        
-        res.render('admin/leaderboard', { 
-            month, year, 
-            config: data.config, 
-            leaderboard: data.leaderboard,
-            userRole: 'Staff'
+        let currentProgram = null;
+        let rankings = [];
+
+        if (selectedProgramId) {
+            currentProgram = programs.find(p => p.id == selectedProgramId);
+
+            // 3. Query tính tổng điểm theo chương trình được chọn (JOIN giữa bảng users và kpi_score_logs)
+            const [staffRankings] = await db.execute(`
+                SELECT u.id, u.full_name, u.avatar_url, u.business_code, 
+                       COALESCE(SUM(l.points_changed), 0) AS total_points
+                FROM Users u
+                LEFT JOIN kpi_score_logs l ON u.id = l.staff_id AND l.kpi_program_id = ?
+                WHERE u.role = 'Staff' AND u.is_deleted = 0
+                GROUP BY u.id
+                HAVING total_points > 0 -- Ẩn những người 0 điểm
+                ORDER BY total_points DESC, u.full_name ASC
+            `, [selectedProgramId]);
+            
+            rankings = staffRankings;
+        }
+
+        // 4. Render ra giao diện mới
+        res.render('staff/leaderboard', { 
+            programs, 
+            selectedProgramId, 
+            currentProgram, 
+            rankings 
         });
 
     } catch (err) {
@@ -760,9 +753,13 @@ router.get('/customers/:id', isStaff, async (req, res) => {
         // Lấy danh sách Ghi chú (Sắp xếp mới nhất lên đầu)
         const [notes] = await db.execute('SELECT * FROM Customer_Notes WHERE customer_id = ? ORDER BY created_at DESC', [customerId]);
 
+        // Lấy danh sách Lịch sử Active
+        const [activeHistories] = await db.execute('SELECT * FROM active_histories WHERE customer_id = ? AND is_deleted = 0 ORDER BY created_at DESC', [customerId]);
+
         res.render('staff/customer-detail', {
             customer: customers[0],
-            notes: notes
+            notes: notes,
+            activeHistories: activeHistories
         });
     } catch (err) {
         console.error(err);
@@ -802,5 +799,14 @@ router.post('/customers/:id/notes', isStaff, async (req, res) => {
         return res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 });
+
+// Route gọi API thu hồi Active (Soft Delete & Trừ điểm Hồi tố)
+router.post('/customers/active/:active_id/delete', isStaff, customerController.deleteActiveCustomer);
+
+// Route gọi API thêm mới Active
+router.post('/customers/:id/active', isStaff, (req, res, next) => {
+    req.user = { username: req.session.username || 'Staff' }; // Polyfill tránh lỗi undefined trong controller
+    next();
+}, customerController.addActiveCustomer);
 
 module.exports = router;

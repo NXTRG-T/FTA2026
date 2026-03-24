@@ -3,116 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cấu hình KPI - FTA CRM</title>
+    <title>Quản lý KPI - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body class="bg-slate-50 font-sans text-slate-800 pb-20">
-
-<div class="max-w-5xl mx-auto p-4 md:p-6 md:pt-8">
-        <div class="mb-4">
-        <a href="/admin/dashboard" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
-            <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Về Dashboard
-        </a>
-    </div>
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
-        <div>
-            <!-- <a href="/admin/dashboard" class="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-black text-[10px] uppercase tracking-widest mb-2 transition-colors"><i class="bi bi-arrow-left"></i> Về Dashboard</a> -->
-            <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight m-0 flex items-center gap-2">
-                <i class="bi bi-sliders text-indigo-500"></i> Cấu hình Điểm KPI
-            </h2>
-        </div>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .glass-header { background: rgba(13, 148, 136, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        .card-custom { border-radius: 2.5rem; border: 1px solid rgba(226, 232, 240, 0.8); }
         
-        <form method="GET" action="/admin/kpi-settings" class="flex gap-2">
-            <select name="month" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-black text-sm text-indigo-600 outline-none cursor-pointer" onchange="this.form.submit()">
-                <% for(let i=1; i<=12; i++) { %>
-                    <option value="<%= i %>" <%= month == i ? 'selected' : '' %>>Tháng <%= i %></option>
-                <% } %>
-            </select>
-            <select name="year" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl font-black text-sm text-indigo-600 outline-none cursor-pointer" onchange="this.form.submit()">
-                <option value="2026" <%= year == 2026 ? 'selected' : '' %>>2026</option>
-                <option value="2025" <%= year == 2025 ? 'selected' : '' %>>2025</option>
-            </select>
-        </form>
-    </div>
+        /* Toggle Switch CSS */
+        .toggle-checkbox:checked { right: 0; border-color: #10B981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10B981; }
+    </style>
+</head>
+<body class="text-slate-800 pb-20">
 
-    <% if(config && config.is_locked) { %>
-        <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-3xl font-bold flex items-center gap-3 shadow-sm">
-            <i class="bi bi-lock-fill text-xl"></i> Tháng này đã được CHỐT SỔ. Dữ liệu điểm số đã đóng băng và không thể sửa đổi cấu hình.
-        </div>
-    <% } %>
-
-    <form action="/admin/kpi-settings/save" method="POST" class="space-y-6">
-        <input type="hidden" name="month" value="<%= month %>">
-        <input type="hidden" name="year" value="<%= year %>">
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-200 border-t-4 border-t-emerald-500">
-                <h3 class="text-lg font-black text-slate-800 mb-6 flex items-center gap-2"><i class="bi bi-coin text-emerald-500"></i> Bảng tính Điểm Thưởng</h3>
-                
-                <div class="space-y-5">
-                    <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Khách Tham Dự Sự Kiện (Điểm/Khách)</label>
-                        <input type="number" name="point_event" value="<%= config ? config.point_per_attended_event : 50 %>" <%= config && config.is_locked ? 'readonly' : '' %> class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 font-bold focus:border-emerald-400 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Hoàn Thành Khảo Sát (Điểm/Phiếu)</label>
-                        <input type="number" name="point_survey" value="<%= config ? config.point_per_survey : 10 %>" <%= config && config.is_locked ? 'readonly' : '' %> class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 font-bold focus:border-emerald-400 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Khách Hàng Mới (Điểm/Hồ sơ)</label>
-                        <input type="number" name="point_customer" value="<%= config ? config.point_per_new_customer : 5 %>" <%= config && config.is_locked ? 'readonly' : '' %> class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 font-bold focus:border-emerald-400 outline-none">
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 border-t-4 border-t-amber-500">
-                    <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2"><i class="bi bi-diagram-3-fill text-amber-500"></i> Cơ chế Trưởng Nhóm</h3>
-                    <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Hệ số Quản lý (Ví dụ: 0.1 = 10%)</label>
-                    <input type="number" step="0.01" name="tl_coefficient" value="<%= config ? config.tl_coefficient : 0.1 %>" <%= config && config.is_locked ? 'readonly' : '' %> class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 font-bold focus:border-amber-400 outline-none">
-                    <p class="text-[10px] text-slate-400 mt-2 font-bold"><i class="bi bi-info-circle"></i> Trưởng nhóm sẽ được cộng thêm điểm bằng [Tổng điểm lính] x [Hệ số].</p>
-                </div>
-
-                <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
-                    <div class="flex items-center justify-between mb-4">
-                        <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Hiển thị Bục vinh quang</label>
-                        <select name="top_limit" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-sm font-bold outline-none" <%= config && config.is_locked ? 'disabled' : '' %>>
-                            <option value="3" <%= config && config.top_display_limit == 3 ? 'selected' : '' %>>Top 3</option>
-                            <option value="5" <%= config && config.top_display_limit == 5 ? 'selected' : '' %>>Top 5</option>
-                            <option value="10" <%= config && config.top_display_limit == 10 ? 'selected' : '' %>>Top 10</option>
-                        </select>
-                    </div>
-                    
-                    <label class="flex items-center gap-3 cursor-pointer p-3 bg-indigo-50 rounded-2xl border border-indigo-100">
-                        <input type="checkbox" name="is_published" value="1" <%= config && config.is_published ? 'checked' : '' %> <%= config && config.is_locked ? 'disabled' : '' %> class="w-5 h-5 accent-indigo-600 cursor-pointer">
-                        <span class="text-sm font-black text-indigo-900 uppercase tracking-tight">Công khai cho Nhân viên xem</span>
-                    </label>
+    <nav class="glass-header text-white px-4 py-3 shadow-lg sticky top-0 z-50">
+        <div class="max-w-[1400px] mx-auto flex items-center gap-3 md:gap-4">
+            <a href="/admin/dashboard" class="inline-flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition-all active:scale-95 shrink-0">
+                <i class="bi bi-arrow-left text-xl"></i>
+                <span class="text-sm font-black uppercase tracking-wider block">Trở lại</span>
+            </a>
+            <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                <h1 class="font-black text-sm md:text-xl leading-none truncate shrink-0">Cấu Hình Luật KPI</h1>
+                <span class="text-white/40 font-light text-xl">|</span>
+                <div class="flex items-center gap-1.5 text-teal-100 min-w-0">
+                    <i class="bi bi-sliders text-sm md:text-lg shrink-0"></i>
+                    <span class="text-[10px] md:text-xs font-bold uppercase tracking-widest truncate">Thiết lập điểm thưởng</span>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
-            <h3 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2"><i class="bi bi-calendar-check-fill text-blue-500"></i> Các Sự kiện được tính điểm trong tháng</h3>
+    <main class="max-w-[1400px] mx-auto p-4 md:p-6 lg:p-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <% if(events.length === 0) { %>
-                <p class="text-sm font-bold text-slate-400 italic">Tháng này chưa có sự kiện nào được tạo.</p>
-            <% } else { %>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <% events.forEach(ev => { %>
-                        <label class="flex items-center gap-3 p-4 border-2 border-slate-100 rounded-2xl cursor-pointer hover:bg-slate-50 transition-colors <%= config && config.is_locked ? 'opacity-60' : '' %>">
-                            <input type="checkbox" name="event_ids" value="<%= ev.id %>" <%= selectedEvents.includes(ev.id) ? 'checked' : '' %> <%= config && config.is_locked ? 'disabled' : '' %> class="w-5 h-5 accent-blue-600">
-                            <span class="text-sm font-bold text-slate-700 line-clamp-1"><%= ev.event_name %></span>
-                        </label>
-                    <% }) %>
-                </div>
-            <% } %>
-        </div>
+            <div class="lg:col-span-5 space-y-6">
+                <div class="card-custom bg-white p-6 md:p-8 shadow-sm">
+                    <h2 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                        <i class="bi bi-plus-circle-fill text-teal-600"></i> Tạo chiến dịch mới
+                    </h2>
 
-        <% if(!config || !config.is_locked) { %>
-            <button type="submit" class="w-full py-5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black rounded-full shadow-xl shadow-indigo-200 text-sm uppercase tracking-widest transition-transform hover:-translate-y-1">Lưu Cấu Hình KPI Tháng <%= month %></button>
-        <% } %>
-    </form>
-</div>
+                    <form action="/admin/kpi-settings/create" method="POST" class="space-y-5">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Tên chương trình *</label>
+                            <input type="text" name="title" required placeholder="VD: Thi đua bức phá tháng 3" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all font-bold text-slate-800 text-sm">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Từ ngày *</label>
+                                <input type="datetime-local" name="start_date" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none font-bold text-slate-800 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Đến ngày *</label>
+                                <input type="datetime-local" name="end_date" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none font-bold text-slate-800 text-sm">
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <p class="font-black text-indigo-900 text-sm">Bật Cộng dồn điểm (Stackable)</p>
+                                <p class="text-[10px] font-bold text-indigo-500 mt-1">Cho phép tính điểm song song cùng lúc nhiều chiến dịch.</p>
+                            </div>
+                            <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="is_stackable" value="1" id="toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 transition-all right-6 border-slate-300"/>
+                                <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors"></label>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <h3 class="text-sm font-black text-slate-800 mb-4"><i class="bi bi-star-fill text-amber-400"></i> Định nghĩa điểm số (Point/lần)</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Dự Khóa học</label>
+                                    <input type="number" name="point_study" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Dự Cuộc họp</label>
+                                    <input type="number" name="point_meeting" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Mỗi Phiếu KS</label>
+                                    <input type="number" name="point_survey" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Khách Dự Sự kiện</label>
+                                    <input type="number" name="point_event_default" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1 pl-2">Khách hàng Active (Xác nhận thủ công)</label>
+                                    <input type="number" name="point_active" value="0" min="0" class="w-full p-4 bg-emerald-50 border border-emerald-200 rounded-xl font-black text-center text-emerald-700 text-lg">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full py-4 bg-teal-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-teal-700 transition-all shadow-lg shadow-teal-200 active:scale-95 flex justify-center items-center gap-2">
+                            <i class="bi bi-floppy-fill"></i> LƯU CHIẾN DỊCH MỚI
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 space-y-6">
+                <div class="flex items-center justify-between mb-4 px-2">
+                    <h3 class="font-black text-xl text-slate-800">Danh sách chiến dịch</h3>
+                    <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-xs font-black"><%= programs.length %> Chương trình</span>
+                </div>
+
+                <div class="space-y-4">
+                    <% if (programs.length === 0) { %>
+                        <div class="card-custom bg-white p-12 text-center text-slate-400">
+                            <i class="bi bi-inboxes text-5xl mb-3 block"></i>
+                            <p class="font-bold">Chưa có chiến dịch KPI nào được tạo.</p>
+                        </div>
+                    <% } else { %>
+                        <% programs.forEach(program => { 
+                            let isActive = new Date() >= new Date(program.start_date) && new Date() <= new Date(program.end_date);
+                        %>
+                            <div class="card-custom bg-white p-6 relative overflow-hidden group hover:border-teal-300 transition-colors">
+                                <% if (isActive) { %>
+                                    <div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-emerald-100">
+                                        <i class="bi bi-circle-fill text-[6px] animate-pulse"></i> Đang chạy
+                                    </div>
+                                <% } else { %>
+                                    <div class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-[9px] font-black uppercase tracking-widest border border-slate-200">
+                                        Đã kết thúc / Chờ
+                                    </div>
+                                <% } %>
+
+                                <div class="pr-32 mb-4">
+                                    <h4 class="text-lg font-black text-slate-900 mb-1"><%= program.title %></h4>
+                                    <p class="text-xs font-bold text-slate-500">
+                                        <i class="bi bi-calendar-range"></i> <%= new Date(program.start_date).toLocaleDateString('vi-VN') %> ➔ <%= new Date(program.end_date).toLocaleDateString('vi-VN') %>
+                                    </p>
+                                </div>
+
+                                <div class="grid grid-cols-5 gap-2 bg-slate-50 rounded-xl p-3 border border-slate-100 mb-4 text-center">
+                                    <div><p class="text-[9px] text-slate-400 font-black uppercase">Khóa học</p><p class="font-black text-slate-800"><%= program.point_study %></p></div>
+                                    <div><p class="text-[9px] text-slate-400 font-black uppercase">Cuộc họp</p><p class="font-black text-slate-800"><%= program.point_meeting %></p></div>
+                                    <div><p class="text-[9px] text-slate-400 font-black uppercase">Khảo sát</p><p class="font-black text-slate-800"><%= program.point_survey %></p></div>
+                                    <div><p class="text-[9px] text-amber-500 font-black uppercase">Sự kiện</p><p class="font-black text-amber-600"><%= program.point_event_default %></p></div>
+                                    <div><p class="text-[9px] text-emerald-500 font-black uppercase">Active</p><p class="font-black text-emerald-600"><%= program.point_active %></p></div>
+                                </div>
+
+                                <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-2">
+                                    <span class="text-[10px] font-black <%= program.is_stackable ? 'text-indigo-600' : 'text-slate-400' %> uppercase tracking-widest bg-white">
+                                        <i class="bi <%= program.is_stackable ? 'bi-layers-fill' : 'bi-dash-circle' %>"></i> 
+                                        <%= program.is_stackable ? 'Có cộng dồn (Stackable)' : 'Không cộng dồn (Off)' %>
+                                    </span>
+                                    
+                                    <div class="flex gap-2">
+                                        <button onclick="recalculatePoints(<%= program.id %>)" class="px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-lg text-[10px] uppercase tracking-widest font-black transition-colors flex items-center gap-1 shadow-sm">
+                                            <i class="bi bi-arrow-repeat"></i> Đồng bộ
+                                        </button>
+                                        <button class="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-lg text-xs font-black transition-colors">
+                                            <i class="bi bi-pencil-square"></i> Sửa
+                                        </button>
+                                        <button class="px-3 py-1.5 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-lg text-xs font-black transition-colors">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    async function recalculatePoints(programId) {
+        if(!confirm('Hệ thống sẽ quét lại toàn bộ lịch sử Khách hàng/Sự kiện để tính lại điểm cho chiến dịch này. Bạn có chắc chắn?')) return;
+        
+        try {
+            const res = await fetch(`/admin/kpi-settings/${programId}/recalculate`, { method: 'POST' });
+            const data = await res.json();
+            
+            if(data.success) {
+                alert('✅ Cập nhật bảng xếp hạng thành công!');
+                location.reload();
+            } else {
+                alert('❌ Lỗi: ' + data.message);
+            }
+        } catch (err) {
+            alert('Lỗi kết nối máy chủ!');
+        }
+    }
+    </script>
 </body>
 </html>

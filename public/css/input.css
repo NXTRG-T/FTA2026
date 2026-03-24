@@ -52,11 +52,7 @@
   /* Hiệu ứng khi nhấn xuống (Active): Thu nhỏ nhẹ đối tượng được click */
   button:active, 
   .btn:active,
-  .grid-stack-item-content > a:active,
-  .doc-card:active, 
-  .noti-card:active, 
-  .event-card:active,
-  .menu-item:active {
+  .grid-stack-item-content > a:active {
       transform: scale(0.95) !important;
       /* Đã loại bỏ filter brightness gây lỗi nháy sáng */
   }
@@ -80,6 +76,39 @@
       background: rgba(13, 148, 136, 0.95); 
       backdrop-filter: blur(12px); 
       border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* ============================================================
+     CHỐNG ĐƠ TRÌNH DUYỆT KHI KÉO THẢ UI (GRIDSTACK)
+     Tắt backdrop-filter để giảm tải GPU khi di chuyển UI
+     ============================================================ */
+  .grid-stack-item-dragging .glass-card,
+  .ui-draggable-dragging .glass-card,
+  .grid-stack-item-dragging .menu-item,
+  .ui-draggable-dragging .menu-item,
+  .grid-stack-item-dragging .doc-card,
+  .grid-stack-item-dragging .noti-card,
+  .grid-stack-item-dragging .event-card {
+      backdrop-filter: none !important;
+      background-color: white !important;
+  }
+
+  /* ============================================================
+     TÙY CHỈNH UI THÙNG RÁC GRIDSTACK (DASHBOARD TRASH ZONE)
+     Nhỏ gọn, bo góc tinh tế và có hiệu ứng nổi bật khi kéo thả
+     ============================================================ */
+  #trash {
+      @apply flex items-center justify-center gap-3 bg-white border-2 border-dashed border-slate-300 text-slate-400 rounded-2xl transition-all duration-300 mx-auto w-fit px-8 py-3 text-[11px] font-black uppercase tracking-widest shadow-sm opacity-80 hover:opacity-100;
+  }
+  
+  /* Hiệu ứng khi một Widget đang được kéo (báo hiệu thùng rác sẵn sàng) */
+  body:has(.grid-stack-item-dragging) #trash {
+      @apply border-rose-300 bg-rose-50 text-rose-500 shadow-md opacity-100;
+  }
+
+  /* Hiệu ứng khi Widget được kéo chạm vào Thùng rác */
+  #trash.ui-droppable-over {
+      @apply bg-rose-500 border-rose-600 text-white scale-110 shadow-xl shadow-rose-200/50;
   }
 }
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const { processKpiPoints } = require('../views/services/kpiService');
 
 // 1. Mở trang Check-in Mobile cho Khách hàng
 router.get('/:event_id', async (req, res) => {
@@ -42,16 +43,33 @@ router.post('/:event_id/process', async (req, res) => {
         if (customers.length > 0) {
             const customerId = customers[0].id;
             
+            // Lấy staff_id phụ trách để cộng điểm
+            const [custInfo] = await db.execute('SELECT staff_id FROM Customers WHERE id = ?', [customerId]);
+            const staffId = custInfo[0]?.staff_id;
+
             // Kiểm tra xem đã có tên trong danh sách sự kiện chưa
             const [participantCheck] = await db.execute('SELECT * FROM Event_Participants WHERE event_id = ? AND customer_id = ?', [event_id, customerId]);
             
+            let isNewAttend = false;
+
             if (participantCheck.length > 0) {
-                // Đã có tên -> Đổi trạng thái thành "Đã tham dự"
-                await db.execute('UPDATE Event_Participants SET status = "Đã tham dự" WHERE event_id = ? AND customer_id = ?', [event_id, customerId]);
+                if (participantCheck[0].status !== 'Đã tham dự') {
+                    await db.execute('UPDATE Event_Participants SET status = "Đã tham dự" WHERE event_id = ? AND customer_id = ?', [event_id, customerId]);
+                    isNewAttend = true;
+                }
             } else {
                 // Chưa có tên (Khách của nhân viên khác dắt đi ké) -> Thêm vào sự kiện
                 await db.execute('INSERT INTO Event_Participants (event_id, customer_id, status) VALUES (?, ?, "Đã tham dự")', [event_id, customerId]);
+                isNewAttend = true;
             }
+
+            // Trả điểm Check-in cho nhân viên phụ trách
+            if (isNewAttend && staffId) {
+                const [events] = await db.execute(`SELECT * FROM Events WHERE id = ?`, [event_id]);
+                const customEventPoint = events[0]?.kpi_points || 0;
+                await processKpiPoints(staffId, 'EVENT_ATTEND', event_id, customEventPoint);
+            }
+            
             return res.json({ success: true, message: `Chào mừng ${customers[0].full_name} đã đến sự kiện!` });
         }
 

@@ -7,6 +7,8 @@ const crypto = require('crypto');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const customerController = require('../controllers/customerController');
+const kpiController = require('../controllers/kpiController');
 
 // Cấu hình Multer lưu tạm vào bộ nhớ đệm (RAM) trước khi nén
 const upload = multer({
@@ -76,7 +78,7 @@ router.get('/dashboard', isAdmin, async (req, res) => {
             total_customers,
             total_staff,
             upcoming_events,
-            upcoming_birthdays,
+            customers_birthday: upcoming_birthdays,
             dashboard_layout: users.length > 0 && users[0].dashboard_layout ? users[0].dashboard_layout : '[]'
         });
     } catch (err) {
@@ -474,12 +476,12 @@ router.get('/reports', isAdmin, async (req, res) => {
         }
 
         if (start_date) {
-            sql += ` AND DATE(c.created_at) >= ?`;
-            params.push(start_date);
+            sql += ` AND c.created_at >= ?`;
+            params.push(`${start_date} 00:00:00`);
         }
         if (end_date) {
-            sql += ` AND DATE(c.created_at) <= ?`;
-            params.push(end_date);
+            sql += ` AND c.created_at <= ?`;
+            params.push(`${end_date} 23:59:59`);
         }
 
         // --- BỘ LỌC TÌM KIẾM MỚI (TÊN HOẶC SĐT) ---
@@ -535,6 +537,9 @@ router.get('/customers/detail/:id', isAdmin, async (req, res) => {
         `, [customerId]);
 
         // --- BỔ SUNG ĐOẠN NÀY ---
+        // Lấy danh sách Lịch sử Active
+        const [activeHistories] = await db.execute('SELECT * FROM active_histories WHERE customer_id = ? AND is_deleted = 0 ORDER BY created_at DESC', [customerId]);
+
         // 3. Lấy danh sách nhân viên để Modal sửa có dữ liệu để chọn người phụ trách
         const [staffs] = await db.execute("SELECT id, full_name FROM Users WHERE role = 'Staff' AND is_deleted = 0");
         // -----------------------
@@ -543,7 +548,8 @@ router.get('/customers/detail/:id', isAdmin, async (req, res) => {
         res.render('admin/customer-detail', {
             customer: customers[0],
             notes: notes,
-            staffs: staffs // Đảm bảo biến này được truyền đi
+            staffs: staffs,
+            activeHistories: activeHistories
         });
 
     } catch (err) {
@@ -662,8 +668,30 @@ router.post('/customers/edit/:id', isAdmin, async (req, res) => {
 // 1. Hiển thị danh sách Sự kiện
 router.get('/events', isAdmin, async (req, res) => {
     try {
-        // Lấy danh sách sự kiện (Đã đổi thành start_time, end_time, location)
-        const [events] = await db.execute('SELECT * FROM Events ORDER BY start_time DESC');
+        const { status, start_date, end_date } = req.query;
+        let sql = 'SELECT * FROM Events WHERE 1=1';
+        const params = [];
+
+        if (status === 'upcoming') {
+            sql += ' AND start_time > NOW()';
+        } else if (status === 'ongoing') {
+            sql += ' AND start_time <= NOW() AND end_time >= NOW()';
+        } else if (status === 'completed') {
+            sql += ' AND end_time < NOW()';
+        }
+
+        if (start_date) {
+            sql += ' AND start_time >= ?';
+            params.push(`${start_date} 00:00:00`);
+        }
+        if (end_date) {
+            sql += ' AND start_time <= ?';
+            params.push(`${end_date} 23:59:59`);
+        }
+
+        sql += ' ORDER BY start_time DESC';
+
+        const [events] = await db.execute(sql, params);
 
         // Lấy danh sách nhân viên đang hoạt động để Admin chọn người phụ trách
         const [staffList] = await db.execute('SELECT id, full_name, phone_1 FROM Users WHERE role = "Staff" AND is_deleted = 0');
@@ -679,7 +707,7 @@ router.get('/events', isAdmin, async (req, res) => {
             ev.managers = managers; // Gắn mảng người phụ trách vào sự kiện
         }
 
-        res.render('admin/events', { events, staffList });
+        res.render('admin/events', { events, staffList, query: req.query });
     } catch (err) {
         console.error(err);
         res.status(500).send('Lỗi tải danh sách sự kiện');
@@ -688,11 +716,11 @@ router.get('/events', isAdmin, async (req, res) => {
 
 // 2. Thêm mới Sự kiện (Đã bổ sung description và drive_link)
 router.post('/events/add', isAdmin, async (req, res) => {
-    const { event_name, location, start_time, end_time, description, drive_link, manager_ids } = req.body;
+    const { event_name, location, start_time, end_time, description, drive_link, manager_ids, kpi_points } = req.body;
     try {
         const [result] = await db.execute(
-            'INSERT INTO Events (event_name, location, start_time, end_time, description, drive_link) VALUES (?, ?, ?, ?, ?, ?)',
-            [event_name, location, start_time, end_time, description || null, drive_link || null]
+            'INSERT INTO Events (event_name, location, start_time, end_time, description, drive_link, kpi_points) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [event_name, location, start_time, end_time, description || null, drive_link || null, kpi_points || 0]
         );
         const newEventId = result.insertId;
 
@@ -714,7 +742,7 @@ router.post('/events/add', isAdmin, async (req, res) => {
 // 2b. XỬ LÝ SỬA SỰ KIỆN CHƯA DIỄN RA (Tính năng mới)
 router.post('/events/edit/:id', isAdmin, async (req, res) => {
     const eventId = req.params.id;
-    const { event_name, location, start_time, end_time, description, drive_link, manager_ids } = req.body;
+    const { event_name, location, start_time, end_time, description, drive_link, manager_ids, kpi_points } = req.body;
 
     try {
         // Kiểm tra xem sự kiện đã diễn ra chưa
@@ -727,8 +755,8 @@ router.post('/events/edit/:id', isAdmin, async (req, res) => {
 
         // Cập nhật thông tin cơ bản
         await db.execute(
-            'UPDATE Events SET event_name=?, location=?, start_time=?, end_time=?, description=?, drive_link=? WHERE id=?',
-            [event_name, location, start_time, end_time, description || null, drive_link || null, eventId]
+            'UPDATE Events SET event_name=?, location=?, start_time=?, end_time=?, description=?, drive_link=?, kpi_points=? WHERE id=?',
+            [event_name, location, start_time, end_time, description || null, drive_link || null, kpi_points || 0, eventId]
         );
 
         // Cập nhật người phụ trách (Xóa cũ, Thêm mới)
@@ -779,6 +807,28 @@ router.post('/events/:id/refresh-qr', isAdmin, async (req, res) => {
         res.json({ success: true, url: checkinUrl });
     } catch (err) {
         res.json({ success: false });
+    }
+});
+
+// Xem chi tiết sự kiện và danh sách khách mời (Admin)
+router.get('/events/detail/:id', isAdmin, async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const [events] = await db.execute('SELECT * FROM Events WHERE id = ?', [eventId]);
+        if (events.length === 0) return res.status(404).send('Không tìm thấy sự kiện');
+
+        // Lấy danh sách toàn bộ khách mời của sự kiện này
+        const [participants] = await db.execute(`
+            SELECT ep.*, c.full_name, c.phone_1, u.full_name as staff_name 
+            FROM Event_Participants ep 
+            JOIN Customers c ON ep.customer_id = c.id
+            LEFT JOIN Users u ON c.staff_id = u.id 
+            WHERE ep.event_id = ?`, [eventId]);
+
+        res.render('admin/event-detail', { event: events[0], participants });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Lỗi tải chi tiết sự kiện');
     }
 });
 
@@ -1238,73 +1288,16 @@ router.get('/api/dashboard-charts', isAdmin, async (req, res) => {
 // ==========================================
 
 // 1. Mở trang Cấu hình KPI (Admin)
-router.get('/kpi-settings', isAdmin, async (req, res) => {
-    try {
-        const month = req.query.month || new Date().getMonth() + 1;
-        const year = req.query.year || new Date().getFullYear();
+router.get('/kpi-settings', isAdmin, kpiController.getIndex);
 
-        // Lấy cấu hình của tháng
-        const [configs] = await db.execute('SELECT * FROM KPI_Configs WHERE month = ? AND year = ?', [month, year]);
-        const config = configs.length > 0 ? configs[0] : null;
+// 2. Lưu cấu hình KPI mới
+router.post('/kpi-settings/create', isAdmin, kpiController.createProgram);
 
-        // Lấy danh sách sự kiện trong tháng để Admin tick chọn
-        const [events] = await db.execute('SELECT id, event_name, start_time FROM Events WHERE MONTH(start_time) = ? AND YEAR(start_time) = ?', [month, year]);
+// 3. Cập nhật cấu hình KPI
+router.post('/kpi-settings/edit/:id', isAdmin, kpiController.updateProgram);
 
-        let selectedEvents = [];
-        if (config) {
-            const [kpiEvents] = await db.execute('SELECT event_id FROM KPI_Config_Events WHERE config_id = ?', [config.id]);
-            selectedEvents = kpiEvents.map(e => e.event_id);
-        }
-
-        res.render('admin/kpi-settings', { month, year, config, events, selectedEvents });
-    } catch (err) {
-        res.status(500).send('Lỗi tải cấu hình KPI');
-    }
-});
-
-// 2. Lưu cấu hình KPI
-router.post('/kpi-settings/save', isAdmin, async (req, res) => {
-    const { month, year, point_event, point_survey, point_customer, tl_coefficient, top_limit, is_published, event_ids } = req.body;
-
-    try {
-        let configId;
-        const [existing] = await db.execute('SELECT id, is_locked FROM KPI_Configs WHERE month = ? AND year = ?', [month, year]);
-
-        // Nếu đã chốt sổ thì cấm sửa
-        if (existing.length > 0 && existing[0].is_locked) {
-            return res.status(400).send('Tháng này đã chốt sổ, không thể thay đổi chính sách!');
-        }
-
-        if (existing.length > 0) {
-            configId = existing[0].id;
-            await db.execute(
-                'UPDATE KPI_Configs SET point_per_attended_event=?, point_per_survey=?, point_per_new_customer=?, tl_coefficient=?, top_display_limit=?, is_published=? WHERE id=?',
-                [point_event, point_survey, point_customer, tl_coefficient, top_limit, is_published ? 1 : 0, configId]
-            );
-            await db.execute('DELETE FROM KPI_Config_Events WHERE config_id = ?', [configId]); // Xóa sự kiện cũ
-        } else {
-            const [result] = await db.execute(
-                'INSERT INTO KPI_Configs (month, year, point_per_attended_event, point_per_survey, point_per_new_customer, tl_coefficient, top_display_limit, is_published) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [month, year, point_event, point_survey, point_customer, tl_coefficient, top_limit, is_published ? 1 : 0]
-            );
-            configId = result.insertId;
-        }
-
-        // Lưu danh sách sự kiện được tính điểm
-        if (event_ids) {
-            const ids = Array.isArray(event_ids) ? event_ids : [event_ids];
-            for (let eid of ids) {
-                await db.execute('INSERT INTO KPI_Config_Events (config_id, event_id) VALUES (?, ?)', [configId, eid]);
-            }
-        }
-
-        await logAction(req.session.userId, null, 'UPDATE_KPI', `Cập nhật chính sách KPI tháng ${month}/${year}`);
-        res.redirect(`/admin/kpi-settings?month=${month}&year=${year}`);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Lỗi lưu cấu hình KPI');
-    }
-});
+// 4. Đồng bộ / Tính lại điểm KPI
+router.post('/kpi-settings/:id/recalculate', isAdmin, kpiController.recalculateKpi);
 
 // 3. Mở Bảng xếp hạng vinh danh
 router.get('/leaderboard', isAdmin, async (req, res) => {
@@ -1393,5 +1386,14 @@ router.post('/tags/delete/:id', isAdmin, async (req, res) => {
         res.status(500).send('Lỗi máy chủ khi xóa Tag');
     }
 });
+
+// Route gọi API thu hồi Active (Soft Delete & Trừ điểm Hồi tố)
+router.post('/customers/active/:active_id/delete', isAdmin, customerController.deleteActiveCustomer);
+
+// Route gọi API thêm mới Active cho Admin
+router.post('/customers/:id/active', isAdmin, (req, res, next) => {
+    req.user = { username: req.session.username || 'Admin' }; // Gắn tên Admin thực hiện
+    next();
+}, customerController.addActiveCustomer);
 
 module.exports = router;

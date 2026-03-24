@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ sơ Khách hàng - FTA CRM</title>
+    <title>Hồ sơ Khách hàng</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -65,31 +65,70 @@
                             </a>
                         </div>
 
-                        <div class="w-full space-y-5 pt-6 border-t border-slate-100">
-                            <div class="flex items-center gap-4 text-left">
-                                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0"><i class="bi bi-telephone-fill"></i></div>
-                                <div class="min-w-0">
-                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Điện thoại</p>
-                                    <p class="text-sm font-bold text-slate-700"><%= customer.phone_1 %></p>
+                        <!-- Khối thông tin chi tiết đầy đủ -->
+                        <div class="w-full text-left bg-slate-50 p-5 rounded-2xl border border-slate-100 mb-2 mt-4">
+                            <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <i class="bi bi-person-lines-fill text-teal-600 text-lg"></i> Thông tin cá nhân
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4">
+                                <!-- Họ và tên -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Họ và tên</span>
+                                    <span class="text-sm font-bold text-slate-800"><%= customer.full_name || 'Đang cập nhật' %></span>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-4 text-left">
-                                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0"><i class="bi bi-geo-alt-fill"></i></div>
-                                <div class="min-w-0">
-                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Địa chỉ</p>
-                                    <p class="text-sm font-bold text-slate-700 truncate"><%= customer.address_1 || 'Chưa cập nhật' %></p>
+                                
+                                <!-- Giới tính -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Giới tính</span>
+                                    <span class="text-sm font-bold text-slate-800"><%= customer.gender || 'Chưa xác định' %></span>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-4 text-left">
-                                <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0"><i class="bi bi-funnel-fill"></i></div>
-                                <div class="min-w-0">
-                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nguồn khách</p>
-                                    <p class="text-sm font-bold text-slate-700"><%= customer.source || 'N/A' %></p>
+                                
+                                <!-- Ngày sinh -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngày sinh</span>
+                                    <span class="text-sm font-bold text-slate-800"><%= customer.birthday ? formatDateTime(customer.birthday).split(' ')[0] : 'Đang cập nhật' %></span>
+                                </div>
+                                
+                                <!-- Số CCCD -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số Căn Cước (CCCD)</span>
+                                    <span class="text-sm font-bold text-slate-800"><%= customer.cccd || 'Đang cập nhật' %></span>
+                                </div>
+                                
+                                <!-- Số điện thoại 1 -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số điện thoại 1</span>
+                                    <span class="text-sm font-bold text-slate-800"><%= customer.phone_1 || 'Đang cập nhật' %></span>
+                                </div>
+                                
+                                <!-- Số điện thoại 2 -->
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số điện thoại 2</span>
+                                    <span class="text-sm font-bold text-slate-800"><%= customer.phone_2 || 'Đang cập nhật' %></span>
+                                </div>
+                                
+                                <!-- Email -->
+                                <div class="flex flex-col gap-1 sm:col-span-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</span>
+                                    <span class="text-sm font-bold text-slate-800 break-all"><%= customer.email || 'Đang cập nhật' %></span>
+                                </div>
+                                
+                                <!-- Địa chỉ 1 -->
+                                <div class="flex flex-col gap-1 sm:col-span-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Địa chỉ hiện tại</span>
+                                    <span class="text-sm font-bold text-slate-800"><%= customer.address_1 || 'Đang cập nhật' %></span>
+                                </div>
+                                
+                                <!-- Địa chỉ 2 -->
+                                <div class="flex flex-col gap-1 sm:col-span-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Địa chỉ phụ</span>
+                                    <span class="text-sm font-bold text-slate-800"><%= customer.address_2 || 'Đang cập nhật' %></span>
                                 </div>
                             </div>
                         </div>
 
-                        <a href="/staff/customers/edit/<%= customer.id %>" class="w-full mt-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 flex justify-center items-center gap-2">
+                        <a href="/staff/customers/edit/<%= customer.id %>" class="w-full mt-4 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 flex justify-center items-center gap-2">
                             <i class="bi bi-pencil-square"></i> Chỉnh sửa hồ sơ
                         </a>
                     </div>
@@ -200,6 +239,37 @@
         </div>
     </main>
 
+    <!-- MODAL ADD ACTIVE -->
+    <div id="activeModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeActiveModal()"></div>
+        
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-6 md:p-8 animate-[slideDown_0.3s_ease-out]">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-slate-800"><i class="bi bi-patch-check-fill text-emerald-500 mr-2"></i> Xác nhận Active</h3>
+                <button onclick="closeActiveModal()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+
+            <form id="formAddActive" class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Mã Active (Bắt buộc Unique) *</label>
+                    <input type="text" name="active_code" required placeholder="VD: ACT-KH01-2026" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Ngày xác nhận *</label>
+                    <input type="datetime-local" name="active_date" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Ghi chú chiến dịch</label>
+                    <textarea name="notes" rows="2" placeholder="Lý do hoặc tên chiến dịch..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm resize-none"></textarea>
+                </div>
+                
+                <button type="submit" id="btnSubmitActive" class="w-full py-4 mt-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 active:scale-95 flex justify-center items-center gap-2">
+                    <i class="bi bi-check-circle-fill"></i> LƯU & TÍNH ĐIỂM
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('noteForm');
@@ -260,5 +330,88 @@
     <style>
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
+
+    <script>
+        // Set thời gian mặc định cho input datetime-local là hiện tại
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const dateInput = document.querySelector('input[name="active_date"]');
+            if (dateInput) dateInput.value = now.toISOString().slice(0, 16);
+        });
+
+        // Hàm Mở/Đóng Modal
+        function openActiveModal() {
+            document.getElementById('activeModal').classList.remove('hidden');
+        }
+        function closeActiveModal() {
+            document.getElementById('activeModal').classList.add('hidden');
+            document.getElementById('formAddActive').reset();
+        }
+
+        // XỬ LÝ SUBMIT FORM ADD ACTIVE
+        const formAddActive = document.getElementById('formAddActive');
+        if (formAddActive) {
+            formAddActive.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = document.getElementById('btnSubmitActive');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> Đang xử lý...';
+                btn.disabled = true;
+
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                data.customer_id = '<%= customer.id %>';
+
+                try {
+                    const response = await fetch('/staff/customers/<%= customer.id %>/active', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('Tạo mã Active và cộng điểm KPI thành công!');
+                        location.reload(); 
+                    } else {
+                        alert('🛑 Lỗi: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Không thể kết nối đến máy chủ!');
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // XỬ LÝ XÓA ACTIVE (SOFT DELETE & TRỪ ĐIỂM HỒI TỐ)
+        async function deleteActiveRecord(activeId) {
+            if(!confirm('⚠️ CẢNH BÁO: Hành động này sẽ Hủy trạng thái Active và TỰ ĐỘNG TRỪ ĐIỂM KPI hồi tố của nhân viên. Bạn chắc chắn chứ?')) return;
+
+            try {
+                const response = await fetch(`/staff/customers/active/${activeId}/delete`, {
+                    method: 'POST' 
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const row = document.getElementById(`active-row-${activeId}`);
+                    if (row) {
+                        row.style.transition = "opacity 0.3s ease";
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                } else {
+                    alert('Lỗi: ' + result.message);
+                }
+            } catch (error) {
+                alert('Lỗi kết nối máy chủ!');
+            }
+        }
+    </script>
 </body>
 </html>

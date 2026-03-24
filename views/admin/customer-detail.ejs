@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giám sát Hồ sơ - FTA Admin</title>
+    <title>Giám sát Hồ sơ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -149,6 +149,56 @@
         </div>
 
         <div class="lg:col-span-2">
+            <!-- KHỐI QUẢN LÝ ACTIVE -->
+            <div class="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100 mb-6 flex flex-col">
+                <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-5">
+                    <h3 class="font-black text-lg flex items-center gap-3 text-slate-800 uppercase tracking-tight">
+                        <i class="bi bi-patch-check-fill text-emerald-500"></i> Lịch sử Active
+                    </h3>
+                    <button onclick="openActiveModal()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-md shadow-emerald-200 flex items-center gap-2">
+                        <i class="bi bi-plus-lg text-sm"></i> Xác nhận Active
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th class="pb-3 pl-2">Mã Active</th>
+                                <th class="pb-3">Ngày xác nhận</th>
+                                <th class="pb-3">Ghi chú</th>
+                                <th class="pb-3">Người xác nhận</th>
+                                <th class="pb-3 text-right pr-2">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm font-bold text-slate-700" id="activeTableBody">
+                            <% if (typeof activeHistories !== 'undefined' && activeHistories.length > 0) { %>
+                                <% activeHistories.forEach(active => { %>
+                                    <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors" id="active-row-<%= active.id %>">
+                                        <td class="py-4 pl-2 font-black text-indigo-600"><%= active.active_code %></td>
+                                        <td class="py-4"><%= new Date(active.active_date).toLocaleDateString('vi-VN') %></td>
+                                        <td class="py-4 truncate max-w-[150px]" title="<%= active.notes %>"><%= active.notes || '--' %></td>
+                                        <td class="py-4 text-xs">
+                                            <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><%= active.admin_username %></span>
+                                        </td>
+                                        <td class="py-4 text-right pr-2">
+                                            <button onclick="deleteActiveRecord(<%= active.id %>)" class="w-8 h-8 inline-flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Hủy & Trừ điểm">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr id="emptyActiveRow">
+                                    <td colspan="5" class="py-8 text-center text-slate-400 font-medium italic">Chưa có lịch sử Active nào cho khách hàng này.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- END KHỐI QUẢN LÝ ACTIVE -->
+
             <div class="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-100 min-h-[500px]">
                 <div class="flex items-center justify-between mb-8">
                     <h3 class="font-black flex items-center gap-2"><i class="bi bi-activity text-indigo-500"></i> Lịch
@@ -381,6 +431,120 @@
                 alert('🛑 Lỗi hệ thống, không thể lưu dữ liệu!');
             }
         });
+    </script>
+
+    <!-- MODAL ADD ACTIVE -->
+    <div id="activeModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeActiveModal()"></div>
+        
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-6 md:p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-slate-800"><i class="bi bi-patch-check-fill text-emerald-500 mr-2"></i> Xác nhận Active</h3>
+                <button onclick="closeActiveModal()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+
+            <form id="formAddActive" class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Mã Active (Bắt buộc Unique) *</label>
+                    <input type="text" name="active_code" required placeholder="VD: ACT-KH01-2026" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Ngày xác nhận *</label>
+                    <input type="datetime-local" name="active_date" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Ghi chú chiến dịch</label>
+                    <textarea name="notes" rows="2" placeholder="Lý do hoặc tên chiến dịch..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm resize-none"></textarea>
+                </div>
+                
+                <button type="submit" id="btnSubmitActive" class="w-full py-4 mt-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 active:scale-95 flex justify-center items-center gap-2">
+                    <i class="bi bi-check-circle-fill"></i> LƯU & TÍNH ĐIỂM
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Set thời gian mặc định cho input datetime-local là hiện tại
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const dateInput = document.querySelector('input[name="active_date"]');
+            if (dateInput) dateInput.value = now.toISOString().slice(0, 16);
+        });
+
+        // Hàm Mở/Đóng Modal
+        function openActiveModal() {
+            document.getElementById('activeModal').classList.remove('hidden');
+        }
+        function closeActiveModal() {
+            document.getElementById('activeModal').classList.add('hidden');
+            document.getElementById('formAddActive').reset();
+        }
+
+        // XỬ LÝ SUBMIT FORM ADD ACTIVE
+        const formAddActive = document.getElementById('formAddActive');
+        if (formAddActive) {
+            formAddActive.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btn = document.getElementById('btnSubmitActive');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> Đang xử lý...';
+                btn.disabled = true;
+
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                data.customer_id = '<%= customer.id %>';
+
+                try {
+                    const response = await fetch('/admin/customers/<%= customer.id %>/active', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('Tạo mã Active và cộng điểm KPI thành công!');
+                        location.reload(); 
+                    } else {
+                        alert('🛑 Lỗi: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Không thể kết nối đến máy chủ!');
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // XỬ LÝ XÓA ACTIVE (SOFT DELETE & TRỪ ĐIỂM HỒI TỐ)
+        async function deleteActiveRecord(activeId) {
+            if(!confirm('⚠️ CẢNH BÁO: Hành động này sẽ Hủy trạng thái Active và TỰ ĐỘNG TRỪ ĐIỂM KPI hồi tố của nhân viên. Bạn chắc chắn chứ?')) return;
+
+            try {
+                const response = await fetch(`/admin/customers/active/${activeId}/delete`, {
+                    method: 'POST' 
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const row = document.getElementById(`active-row-${activeId}`);
+                    if (row) {
+                        row.style.transition = "opacity 0.3s ease";
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                } else {
+                    alert('Lỗi: ' + result.message);
+                }
+            } catch (error) {
+                alert('Lỗi kết nối máy chủ!');
+            }
+        }
     </script>
 </body>
 

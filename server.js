@@ -24,6 +24,16 @@ app.locals.formatDateTime = function(dateString) {
     return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 };
 
+// 0.5. Hàm tự động sinh Avatar nếu người dùng chưa có ảnh đại diện
+app.locals.getDefaultAvatar = function(name, avatar_url) {
+    if (avatar_url && avatar_url.trim() !== '') {
+        return avatar_url; // Nếu đã có ảnh thì trả về ảnh gốc
+    }
+    // Nếu chưa có, tự động tạo ảnh avatar bằng chữ cái đầu của Tên với màu nền ngẫu nhiên
+    const safeName = name ? encodeURIComponent(name.trim()) : 'User';
+    return `https://ui-avatars.com/api/?name=${safeName}&background=random&color=fff&size=200&bold=true`;
+};
+
 // 1. Cấu hình Middleware
 app.use(express.urlencoded({ extended: true })); // Xử lý dữ liệu từ Form (Tiếng Việt mượt mà) [cite: 17]
 app.use(express.json()); // Xử lý dữ liệu JSON
