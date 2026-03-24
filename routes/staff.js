@@ -319,13 +319,13 @@ router.post('/customers/:customer_id/events/:event_id/update-status', isStaff, a
                 await processKpiPoints(staff_id, 'EVENT_ATTEND', eventId, customEventPoint);
             } else if (oldStatus === 'Đã tham dự' && attendance_status !== 'Đã tham dự') {
                 const [oldLogs] = await db.execute(`
-                    SELECT * FROM kpi_score_logs 
+                    SELECT * FROM KPI_Score_Logs 
                     WHERE reference_id = ? AND action_type = 'EVENT_ATTEND' AND staff_id = ? AND points_changed > 0
                 `, [eventId, staff_id]);
 
                 for (const log of oldLogs) {
                     await db.execute(`
-                        INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
+                        INSERT INTO KPI_Score_Logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
                         VALUES (?, ?, ?, ?, ?, ?)
                     `, [log.staff_id, log.kpi_program_id, 'REVERT_EVENT', eventId, -log.points_changed, `Thu hồi điểm do hủy trạng thái Đã tham dự sự kiện`]);
                 }
@@ -634,7 +634,7 @@ router.get('/my-team', isStaff, async (req, res) => {
 router.get('/leaderboard', isStaff, async (req, res) => {
     try {
         // 1. Lấy danh sách tất cả các chương trình KPI (programs)
-        const [programs] = await db.execute('SELECT * FROM kpi_programs ORDER BY created_at DESC');
+        const [programs] = await db.execute('SELECT * FROM KPI_Programs ORDER BY created_at DESC');
         
         // 2. Xác định chương trình đang được chọn (ưu tiên query params, nếu không có thì lấy cái đầu tiên)
         let selectedProgramId = req.query.program_id;
@@ -653,7 +653,7 @@ router.get('/leaderboard', isStaff, async (req, res) => {
                 SELECT u.id, u.full_name, u.avatar_url, u.business_code, 
                        COALESCE(SUM(l.points_changed), 0) AS total_points
                 FROM Users u
-                LEFT JOIN kpi_score_logs l ON u.id = l.staff_id AND l.kpi_program_id = ?
+                LEFT JOIN KPI_Score_Logs l ON u.id = l.staff_id AND l.kpi_program_id = ?
                 WHERE u.role = 'Staff' AND u.is_deleted = 0
                 GROUP BY u.id
                 HAVING total_points > 0 -- Ẩn những người 0 điểm
@@ -839,7 +839,7 @@ router.get('/customers/:id', isStaff, async (req, res) => {
         const [notes] = await db.execute('SELECT * FROM Customer_Notes WHERE customer_id = ? ORDER BY created_at DESC', [customerId]);
 
         // Lấy danh sách Lịch sử Active
-        const [activeHistories] = await db.execute('SELECT * FROM active_histories WHERE customer_id = ? AND is_deleted = 0 ORDER BY created_at DESC', [customerId]);
+        const [activeHistories] = await db.execute('SELECT * FROM Active_Histories WHERE customer_id = ? AND is_deleted = 0 ORDER BY created_at DESC', [customerId]);
 
         res.render('staff/customer-detail', {
             customer: customers[0],

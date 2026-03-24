@@ -550,7 +550,7 @@ router.get('/customers/detail/:id', isAdmin, async (req, res) => {
 
         // --- BỔ SUNG ĐOẠN NÀY ---
         // Lấy danh sách Lịch sử Active
-        const [activeHistories] = await db.execute('SELECT * FROM active_histories WHERE customer_id = ? AND is_deleted = 0 ORDER BY created_at DESC', [customerId]);
+        const [activeHistories] = await db.execute('SELECT * FROM Active_Histories WHERE customer_id = ? AND is_deleted = 0 ORDER BY created_at DESC', [customerId]);
 
         // 3. Lấy danh sách nhân viên để Modal sửa có dữ liệu để chọn người phụ trách
         const [staffs] = await db.execute("SELECT id, full_name FROM Users WHERE role = 'Staff' AND is_deleted = 0");

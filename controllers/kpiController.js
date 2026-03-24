@@ -4,7 +4,7 @@ const { recalculateProgramPoints } = require('../views/services/kpiService');
 // [GET] Hiển thị trang quản lý KPI
 exports.getIndex = async (req, res) => {
     try {
-        const [programs] = await db.query('SELECT * FROM kpi_programs ORDER BY created_at DESC');
+        const [programs] = await db.query('SELECT * FROM KPI_Programs ORDER BY created_at DESC');
         res.render('admin/kpi-settings', { programs });
     } catch (error) {
         console.error(error);
@@ -21,7 +21,7 @@ exports.createProgram = async (req, res) => {
 
     try {
         await db.query(`
-            INSERT INTO kpi_programs 
+            INSERT INTO KPI_Programs 
             (title, description, start_date, end_date, is_stackable, point_study, point_meeting, point_survey, point_active, point_event_default, point_recruit)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
@@ -46,7 +46,7 @@ exports.updateProgram = async (req, res) => {
 
     try {
         await db.query(`
-            UPDATE kpi_programs 
+            UPDATE KPI_Programs 
             SET title=?, description=?, start_date=?, end_date=?, is_stackable=?, 
                 point_study=?, point_meeting=?, point_survey=?, point_active=?, point_event_default=?, point_recruit=?
             WHERE id=?
@@ -83,7 +83,7 @@ exports.recalculateKpi = async (req, res) => {
 exports.deleteProgram = async (req, res) => {
     const { id } = req.params;
     try {
-        await db.query('DELETE FROM kpi_programs WHERE id=?', [id]);
+        await db.query('DELETE FROM KPI_Programs WHERE id=?', [id]);
         res.redirect('/admin/kpi-settings');
     } catch (error) {
         res.status(500).send("Lỗi xóa dữ liệu");
@@ -100,7 +100,7 @@ exports.getKpiHistoryAPI = async (req, res) => {
 
         let query = `
             SELECT k.*, u.full_name, u.avatar_url 
-            FROM kpi_score_logs k
+            FROM KPI_Score_Logs k
             JOIN Users u ON k.staff_id = u.id
             WHERE 1=1
         `;
@@ -149,7 +149,7 @@ exports.getAdminKpiLogsAPI = async (req, res) => {
 
         let query = `
             SELECT k.*, u.full_name, u.avatar_url, u.phone_1 
-            FROM kpi_score_logs k
+            FROM KPI_Score_Logs k
             JOIN Users u ON k.staff_id = u.id
             WHERE 1=1
         `;

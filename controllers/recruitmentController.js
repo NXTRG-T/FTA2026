@@ -339,7 +339,7 @@ exports.getIndexTeamMonitor = async (req, res) => {
             SELECT 
                 u1.id, u1.full_name, u1.avatar_url, u1.phone_1,
                 (SELECT COUNT(id) FROM Users WHERE leader_id = u1.id OR recruiter_id = u1.id) as total_f2,
-                (SELECT COALESCE(SUM(points_changed), 0) FROM kpi_score_logs WHERE staff_id IN 
+                (SELECT COALESCE(SUM(points_changed), 0) FROM KPI_Score_Logs WHERE staff_id IN 
                     (SELECT id FROM Users WHERE leader_id = u1.id OR recruiter_id = u1.id OR id = u1.id)
                 ) as total_team_kpi
             FROM Users u1

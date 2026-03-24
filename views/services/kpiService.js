@@ -12,7 +12,7 @@ async function processKpiPoints(staff_id, action_type, reference_id, custom_poin
         // [QUAN TRỌNG] Kiểm tra điểm Tuyển dụng để đảm bảo 1 ứng viên chỉ mang lại điểm 1 lần duy nhất
         if (action_type === 'RECRUIT_SUCCESS') {
             const [existingLogs] = await db.query(
-                `SELECT id FROM kpi_score_logs WHERE action_type = 'RECRUIT_SUCCESS' AND reference_id = ?`,
+                `SELECT id FROM KPI_Score_Logs WHERE action_type = 'RECRUIT_SUCCESS' AND reference_id = ?`,
                 [reference_id]
             );
             if (existingLogs.length > 0) return; // Đã từng cộng điểm rồi thì thoát ngay lập tức
@@ -20,7 +20,7 @@ async function processKpiPoints(staff_id, action_type, reference_id, custom_poin
 
         // 1. Tìm các chương trình KPI ĐANG HOẠT ĐỘNG (Dựa theo thời gian hiện tại)
         const [activePrograms] = await db.query(`
-            SELECT * FROM kpi_programs 
+            SELECT * FROM KPI_Programs 
             WHERE NOW() BETWEEN start_date AND end_date 
             ORDER BY created_at DESC
         `);
@@ -57,7 +57,7 @@ async function processKpiPoints(staff_id, action_type, reference_id, custom_poin
 
             if (pointsToAward > 0) {
                 await db.query(`
-                    INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
+                    INSERT INTO KPI_Score_Logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
                     VALUES (?, ?, ?, ?, ?, ?)
                 `, [
                     staff_id, 
@@ -81,12 +81,12 @@ async function processKpiPoints(staff_id, action_type, reference_id, custom_poin
 async function recalculateProgramPoints(programId) {
     try {
         // 1. Lấy thông tin "Luật chơi" mới nhất của chương trình này
-        const [programs] = await db.query('SELECT * FROM kpi_programs WHERE id = ?', [programId]);
+        const [programs] = await db.query('SELECT * FROM KPI_Programs WHERE id = ?', [programId]);
         if (programs.length === 0) return { success: false, message: 'Không tìm thấy chương trình' };
         const program = programs[0];
 
         // 2. CLEAR LOG CŨ: Xóa sạch toàn bộ điểm đã từng cộng/trừ của chương trình này
-        await db.query('DELETE FROM kpi_score_logs WHERE kpi_program_id = ?', [programId]);
+        await db.query('DELETE FROM KPI_Score_Logs WHERE kpi_program_id = ?', [programId]);
 
         // ==========================================
         // 3. TÍNH LẠI ĐIỂM ACTIVE KHÁCH HÀNG
@@ -95,8 +95,8 @@ async function recalculateProgramPoints(programId) {
             // Tìm tất cả Active hợp lệ trong khoảng thời gian của chương trình
             const [actives] = await db.query(`
                 SELECT ah.id, c.staff_id 
-                FROM active_histories ah
-                JOIN customers c ON ah.customer_id = c.id
+                FROM Active_Histories ah
+                JOIN Customers c ON ah.customer_id = c.id
                 WHERE ah.is_deleted = 0 
                   AND ah.active_date BETWEEN ? AND ?
                   AND c.staff_id IS NOT NULL
@@ -105,7 +105,7 @@ async function recalculateProgramPoints(programId) {
             // Cộng lại điểm
             for (let act of actives) {
                 await db.query(`
-                    INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
+                    INSERT INTO KPI_Score_Logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
                     VALUES (?, ?, 'ACTIVE_CUSTOMER', ?, ?, 'Hồi tố điểm Active Khách hàng')
                 `, [act.staff_id, program.id, act.id, program.point_active]);
             }
@@ -117,9 +117,9 @@ async function recalculateProgramPoints(programId) {
         // Tìm tất cả khách đã Check-in trong thời gian chạy KPI
         const [attendees] = await db.query(`
             SELECT ep.customer_id, ep.event_id, e.kpi_points, c.staff_id 
-            FROM event_participants ep
-            JOIN events e ON ep.event_id = e.id
-            JOIN customers c ON ep.customer_id = c.id
+            FROM Event_Participants ep
+            JOIN Events e ON ep.event_id = e.id
+            JOIN Customers c ON ep.customer_id = c.id
             WHERE ep.status = 'Đã tham dự' 
               AND e.start_time BETWEEN ? AND ?
               AND c.staff_id IS NOT NULL
@@ -131,7 +131,7 @@ async function recalculateProgramPoints(programId) {
             
             if (pts > 0) {
                 await db.query(`
-                    INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
+                    INSERT INTO KPI_Score_Logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
                     VALUES (?, ?, 'EVENT_ATTEND', ?, ?, 'Hồi tố điểm Tham dự Sự kiện')
                 `, [att.staff_id, program.id, att.event_id, pts]);
             }
@@ -143,15 +143,15 @@ async function recalculateProgramPoints(programId) {
         if (program.point_survey > 0) {
             const [surveys] = await db.query(`
                 SELECT s.id, c.staff_id 
-                FROM surveys s
-                JOIN customers c ON s.customer_id = c.id
+                FROM Surveys s
+                JOIN Customers c ON s.customer_id = c.id
                 WHERE s.completed_at BETWEEN ? AND ?
                   AND c.staff_id IS NOT NULL
             `, [program.start_date, program.end_date]);
 
             for (let srv of surveys) {
                 await db.query(`
-                    INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
+                    INSERT INTO KPI_Score_Logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
                     VALUES (?, ?, 'SURVEY', ?, ?, 'Hồi tố điểm Khảo sát')
                 `, [srv.staff_id, program.id, srv.id, program.point_survey]);
             }
@@ -172,7 +172,7 @@ async function recalculateProgramPoints(programId) {
 
             for (let rec of recruits) {
                 await db.query(`
-                    INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
+                    INSERT INTO KPI_Score_Logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
                     VALUES (?, ?, 'RECRUIT_SUCCESS', ?, ?, 'Hồi tố điểm Tuyển dụng thành công')
                 `, [rec.recruiter_id, program.id, rec.id, program.point_recruit]);
             }
