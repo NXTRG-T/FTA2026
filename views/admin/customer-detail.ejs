@@ -450,7 +450,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Ngày xác nhận *</label>
-                    <input type="datetime-local" name="active_date" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                    <input type="datetime-local" name="active_date" required step="1" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Ghi chú chiến dịch</label>
@@ -470,7 +470,7 @@
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const dateInput = document.querySelector('input[name="active_date"]');
-            if (dateInput) dateInput.value = now.toISOString().slice(0, 16);
+            if (dateInput) dateInput.value = now.toISOString().slice(0, 19);
         });
 
         // Hàm Mở/Đóng Modal

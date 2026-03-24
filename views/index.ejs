@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
@@ -7,297 +7,945 @@
     <title>BRICS Việt Nam - FTA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        /* Motion & Float Animations */
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
         }
-        .animate-float { animation: float 5s ease-in-out infinite; }
-        .glass-nav { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); }
-        .text-gradient { background: linear-gradient(to right, #4f46e5, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .bg-aurora { background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 40%); }
-        
-        /* Hiệu ứng Gradient Border khi Hover */
-        .hover-gradient-border { position: relative; z-index: 1; }
-        .hover-gradient-border::before {
-            content: ""; position: absolute; inset: 0; padding: 2px; border-radius: 2rem;
-            background: linear-gradient(135deg, #6366f1, #06b6d4, #10b981); 
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.3s ease; z-index: -1;
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
         }
-        .hover-gradient-border:hover::before { opacity: 1; }
+
+        @keyframes float-delayed {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .animate-float-delayed {
+            animation: float-delayed 5s ease-in-out infinite 2s;
+        }
+
+        /* Text Shine Animation */
+        @keyframes textShine {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 200% 50%;
+            }
+        }
+
+        .animate-text-shine {
+            background-size: 200% auto;
+            animation: textShine 3s ease-in-out infinite alternate;
+        }
+
+        /* Modal Animation */
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Parallax Layer base transition */
+        .parallax-layer { transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+
+        /* Glassmorphism Classes */
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f8fafc; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-900 overflow-x-hidden bg-aurora relative">
+<body class="overflow-x-hidden relative selection:bg-indigo-500 selection:text-white">
 
-    <div id="cursor-glow" class="fixed w-[500px] h-[500px] bg-indigo-400/20 rounded-full pointer-events-none blur-[120px] -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300 hidden lg:block opacity-0"></div>
-
-    <nav class="fixed top-0 w-full z-50 glass-nav border-b border-white shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
+    <nav class="fixed top-0 w-full z-50 glass-nav transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <img src="/img/logo.png" alt="BRICS Logo" class="h-10" onerror="this.src='/img/default-logo.png'">
-                <span class="font-black text-xl tracking-tighter text-slate-800">BRICS <span class="text-indigo-600">VIETNAM</span></span>
+            <div class="flex items-center gap-3 cursor-pointer hover:scale-105 transition-transform">
+                <img src="/img/logo.png" alt="BRICS Logo" class="h-10 brightness-200"
+                    onerror="this.src='/img/default-logo.png'">
+                <span class="font-black text-xl tracking-tighter text-white">BRICS <span
+                        class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">VIETNAM</span></span>
             </div>
-            <div class="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.15em] text-slate-500">
-                <a href="#why-brics" class="hover:text-indigo-600 transition-colors">Vì sao chọn BRICS?</a>
-                <a href="#job-info" class="hover:text-indigo-600 transition-colors">Tuyển dụng</a>
-                <a href="#benefits" class="hover:text-indigo-600 transition-colors">Quyền lợi</a>
+            <div
+                class="hidden md:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.15em] text-slate-300">
+                <a href="#why-brics" class="hover:text-cyan-400 transition-colors">Vì sao chọn BRICS FTA?</a>
+                <a href="#apply" class="hover:text-cyan-400 transition-colors">Tuyển dụng</a>
+                <a href="#benefits" class="hover:text-cyan-400 transition-colors">Quyền lợi</a>
             </div>
-            <a href="/auth/login" class="px-6 py-2.5 bg-slate-900 text-white rounded-full font-bold text-xs uppercase tracking-widest hover:bg-indigo-600 shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-95 flex items-center gap-2">
+            <a href="/auth/login"
+                class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full font-bold text-xs uppercase tracking-widest hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] transition-all active:scale-95 flex items-center gap-2 border border-indigo-400/30">
                 <i class="bi bi-shield-lock-fill"></i> Đăng nhập FTA
             </a>
         </div>
     </nav>
 
-    <section class="pt-32 md:pt-40 pb-20 px-6 relative z-10">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative">
+    <section class="relative pt-32 pb-24 overflow-hidden min-h-[90vh] flex items-center">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 opacity-90 z-0">
+        </div>
+        <div
+            class="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] bg-cyan-500 rounded-full blur-[150px] opacity-30 z-0 mix-blend-screen">
+        </div>
+        <div
+            class="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] bg-pink-500 rounded-full blur-[120px] opacity-30 z-0 mix-blend-screen">
+        </div>
 
-            <div class="space-y-6 text-center lg:text-left relative z-10">
-                <a href="#job-info" class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-indigo-100 shadow-sm text-indigo-600 rounded-full font-bold text-[10px] uppercase tracking-widest hover:shadow-md transition-all cursor-pointer group">
+        <div class="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+
+            <div class="text-white space-y-8" data-aos="fade-right">
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-2 glass-card text-cyan-300 rounded-full font-bold text-[10px] uppercase tracking-widest">
                     <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
                     </span>
-                    HOT: Đang mở đơn tuyển dụng tháng <%= new Date().getMonth() + 1 %> <i class="bi bi-arrow-right-short text-lg ml-1 group-hover:translate-x-1 transition-transform"></i>
-                </a>
+                    Đang mở đơn tuyển dụng tháng <%= new Date().getMonth() + 1 %>
+                </div>
 
-                <h1 class="text-5xl md:text-6xl lg:text-[72px] font-black leading-[1.05] tracking-tight text-slate-900">
-                    Sự nghiệp vững vàng <br>
-                    <span class="text-gradient">Thu nhập bứt phá</span>
+                <h1 class="text-5xl lg:text-7xl font-black leading-tight tracking-tight">
+                    Sự nghiệp <br>
+                    <span
+                        class="bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(99,102,241,0.5)] animate-text-shine">
+                        BỨT PHÁ
+                    </span>
                 </h1>
 
-                <p class="text-lg text-slate-500 font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
-                    Đừng chỉ tìm một công việc, hãy xây dựng một sự nghiệp. Trở thành Chuyên viên tại BRICS với bệ phóng công nghệ FTA chuyên nghiệp và đãi ngộ vượt trội.
+                <p class="text-lg text-slate-300 font-medium leading-relaxed max-w-lg">
+                    Đừng chỉ tìm một công việc, hãy xây dựng một sự nghiệp. Nền tảng công nghệ FTA giúp bạn gia tăng
+                    mạng lưới khách hàng và tối ưu doanh số hiệu quả.
                 </p>
 
-                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
-                    <a href="#apply" class="px-10 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-600/30 hover:bg-indigo-700 hover:-translate-y-1 transition-all text-center flex items-center justify-center gap-2">
-                        <i class="bi bi-rocket-takeoff-fill"></i> Ứng tuyển ngay
-                    </a>
+                <div class="flex flex-wrap gap-3 text-sm font-bold">
+                    <span
+                        class="glass-card px-4 py-2.5 rounded-xl border-emerald-500/30 text-emerald-300 flex items-center gap-2"><i
+                            class="bi bi-wallet2"></i> 15–30tr/tháng</span>
+                    <span
+                        class="glass-card px-4 py-2.5 rounded-xl border-amber-500/30 text-amber-300 flex items-center gap-2"><i
+                            class="bi bi-lightning-charge-fill"></i> Có khách sau 7 ngày</span>
                 </div>
 
-                <div class="flex items-center gap-4 pt-6 justify-center lg:justify-start">
-                    <div class="flex -space-x-3">
-                        <img src="https://i.pravatar.cc/100?img=32" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="User">
-                        <img src="https://i.pravatar.cc/100?img=12" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="User">
-                        <img src="https://i.pravatar.cc/100?img=5" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="User">
-                        <div class="w-10 h-10 rounded-full border-2 border-white shadow-sm bg-indigo-50 flex items-center justify-center text-[10px] font-black text-indigo-600">+1k</div>
-                    </div>
-                    <div>
-                        <div class="flex text-amber-400 text-xs mb-0.5">
-                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                <div class="pt-4 flex items-center gap-6">
+                    <button onclick="document.getElementById('apply').scrollIntoView()"
+                        class="px-8 py-4 bg-white text-indigo-900 font-black rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] transition-all duration-300 relative overflow-hidden group">
+                        <span class="relative z-10">ỨNG TUYỂN NGAY</span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-cyan-300 to-indigo-300 opacity-0 group-hover:opacity-100 transition-opacity z-0"></div>
+                    </button>
+
+                    <div class="flex items-center gap-3">
+                        <div class="flex -space-x-3">
+                            <img src="https://i.pravatar.cc/100?img=40"
+                                class="w-10 h-10 rounded-full border-2 border-indigo-900" alt="User">
+                            <img src="https://i.pravatar.cc/100?img=11"
+                                class="w-10 h-10 rounded-full border-2 border-indigo-900" alt="User">
+                            <img src="https://i.pravatar.cc/100?img=5"
+                                class="w-10 h-10 rounded-full border-2 border-indigo-900" alt="User">
                         </div>
-                        <p class="text-xs font-bold text-slate-600 m-0">Hơn <span class="text-indigo-600">1.200+</span> nhân sự đã gia nhập</p>
+                        <div class="text-xs font-bold text-slate-300 leading-tight">
+                            Hơn <span class="text-cyan-400 text-sm">1.200+</span><br>nhân sự đã gia nhập
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="relative hidden lg:block mt-8 lg:mt-0">
-                <div class="animate-float relative z-10">
-                    <div class="bg-white/60 backdrop-blur-2xl border border-white p-4 rounded-[3.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative group">
-                        <img src="\public\uploads\system\dashboard_banner-1774196774052.webp" alt="Dashboard Preview" class="rounded-[2.5rem] shadow-inner transition-transform duration-500 group-hover:scale-[1.02]">
+            <div class="relative lg:h-[600px] flex items-center justify-center" data-aos="fade-left"
+                data-aos-delay="200">
+                <img src="/img/BRICS-CRM-Portal-Demo.webp" alt="BRICS FTA System" data-speed="1.5"
+                    class="parallax-layer relative z-10 w-full max-w-lg rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-white/10 animate-float object-cover">
 
-                        <div class="absolute -bottom-8 -left-8 bg-white/90 backdrop-blur-xl p-5 rounded-[2rem] shadow-2xl border border-white flex items-center gap-4 animate-[float_4s_ease-in-out_infinite_reverse]">
-                            <div class="w-14 h-14 bg-gradient-to-tr from-emerald-400 to-teal-400 text-white rounded-[1.2rem] flex items-center justify-center shadow-lg shadow-emerald-200">
-                                <span class="text-4xl font-black mb-1">∞</span>
-                            </div>
-                            <div class="pr-2">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest m-0">Tiềm năng thu nhập</p>
-                                <p class="text-xl font-black m-0 bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent drop-shadow-sm">
-                                    KHÔNG GIỚI HẠN
-                                </p>
-                            </div>
+                <div
+                    data-speed="-2" class="parallax-layer absolute top-10 -left-6 z-20 glass-card p-4 rounded-2xl text-white shadow-2xl animate-float-delayed border-l-4 border-l-cyan-400 backdrop-blur-xl">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl">
+                            <i class="bi bi-graph-up-arrow"></i>
                         </div>
+                        <div>
+                            <p class="text-[10px] text-slate-300 uppercase tracking-wider mb-0.5">Tiềm năng thu nhập</p>
+                            <p class="text-sm font-black m-0">KHÔNG GIỚI HẠN</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-speed="2.5" class="parallax-layer absolute bottom-10 -right-6 z-20 bg-gradient-to-r from-emerald-500 to-teal-600 p-4 rounded-2xl text-white shadow-2xl animate-float border border-white/20">
+                    <div class="flex items-center gap-3">
+                        <div class="text-3xl">🚀</div>
+                        <div>
+                            <p class="text-[10px] text-emerald-100 uppercase tracking-wider mb-0.5">Hỗ trợ công nghệ</p>
+                            <p class="text-sm font-black m-0">Tự động hóa 80%++</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <a href="#why-brics" class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-slate-400 hover:text-cyan-400 transition-colors z-20 flex flex-col items-center gap-2">
+            <span class="text-[9px] uppercase tracking-[0.2em] font-black opacity-50">Khám phá</span>
+            <i class="bi bi-chevron-down text-2xl"></i>
+        </a>
+    </section>
+
+    <div class="relative h-24 overflow-hidden z-0">
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-[#0b1121]"></div>
+    </div>
+
+    <section id="why-brics" class="py-20 relative z-10 bg-[#0b1121]">
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16" data-aos="zoom-in">
+                <!-- <p class="text-cyan-400 font-black text-[10px] md:text-xs uppercase tracking-[0.2em] mb-3 flex items-center justify-center gap-2">
+                    <i class="bi bi-1-circle"></i> Bước 1: Tại sao bạn làm được điều đó
+                </p> -->
+                <h2 class="text-4xl md:text-5xl font-black text-white mb-4">Lợi thế độc quyền tại <span class="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">BRICS</span></h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 group/system">
+                <div class="relative p-8 rounded-[2.5rem] glass-card group/card hover:-translate-y-3 transition-all duration-500 opacity-100 group-hover/system:opacity-40 hover:!opacity-100" data-aos="fade-right" data-aos-delay="100">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-[2.5rem] opacity-0 group-hover/card:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-indigo-500/30 text-white">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-3 text-white">Thu nhập đỉnh cao</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Thưởng không giới hạn, ghi nhận 100% năng lực.
+                            Cơ chế tính thưởng minh bạch qua hệ thống quản trị thông minh.</p>
+                    </div>
+                </div>
+
+                <div class="relative p-8 rounded-[2.5rem] glass-card group/card hover:-translate-y-3 transition-all duration-500 opacity-100 group-hover/system:opacity-40 hover:!opacity-100" data-aos="zoom-in" data-aos-delay="200">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-[2.5rem] opacity-0 group-hover/card:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-cyan-500/30 text-white">
+                            <i class="bi bi-cpu-fill"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-3 text-white">Hệ sinh thái sẵn có</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Bạn không đơn độc! Nhận ngay tệp Data khách
+                            hàng tiềm năng và nền tảng quản trị thông minh tự động hóa 80%++ quy trình.</p>
+                    </div>
+                </div>
+
+                <div class="relative p-8 rounded-[2.5rem] glass-card group/card hover:-translate-y-3 transition-all duration-500 opacity-100 group-hover/system:opacity-40 hover:!opacity-100" data-aos="fade-left" data-aos-delay="300">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-[2.5rem] opacity-0 group-hover/card:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-emerald-500/30 text-white">
+                            <i class="bi bi-rocket-takeoff-fill"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-3 text-white">Thăng tiến siêu tốc</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Chỉ từ 4 - 6 tháng để thăng cấp lên vị trí
+                            Quản lý. Được đào tạo bài bản và cấp chứng chỉ hành nghề danh giá từ Bộ Tài Chính.</p>
+                    </div>
+                </div>
+
+                <div class="relative p-8 rounded-[2.5rem] glass-card group hover:-translate-y-3 transition-all duration-500"
+                    data-aos="fade-up" data-aos-delay="400">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-rose-500/30 text-white">
+                            <i class="bi bi-boxes"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-3 text-white">Sản phẩm đa dạng</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Sở hữu danh mục giải pháp tài chính và bảo
+                            hiểm phong phú từ các đối tác hàng đầu, tự tin đáp ứng mọi nhu cầu và chinh phục mọi phân
+                            khúc khách hàng.</p>
+                    </div>
+                </div>
+
+                <div class="relative p-8 rounded-[2.5rem] glass-card group hover:-translate-y-3 transition-all duration-500"
+                    data-aos="fade-up" data-aos-delay="500">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-amber-500/30 text-white">
+                            <i class="bi bi-cloud-check-fill"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-3 text-white">Nền tảng công nghệ hiện đại</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Trang bị không gian làm việc số hóa
+                            All-in-one. Quản lý khách hàng, đo lường KPI và theo dõi doanh số trực quan mà không tốn bất
+                            kỳ chi phí nào.</p>
+                    </div>
+                </div>
+
+                <div class="relative p-8 rounded-[2.5rem] glass-card group hover:-translate-y-3 transition-all duration-500"
+                    data-aos="fade-up" data-aos-delay="600">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-fuchsia-500/10 to-transparent rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-fuchsia-400 to-purple-600 rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-lg shadow-fuchsia-500/30 text-white">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </div>
+                        <h3 class="text-xl font-black mb-3 text-white">Đào tạo & Cố vấn 1-1</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Được kèm cặp trực tiếp bởi đội ngũ chuyên gia
+                            thực chiến. Lộ trình huấn luyện bài bản từ con số 0 giúp bạn tốt và tốt hơn nữa.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="why-brics" class="py-20 relative z-10">
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <h2 class="text-3xl md:text-4xl font-black text-slate-800 mb-12">Vì sao chọn <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">BRICS?</span></h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-100 transition-all duration-300">
-                    <div class="w-16 h-16 mx-auto bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-3xl mb-6">
-                        <i class="bi bi-graph-up-arrow"></i>
-                    </div>
-                    <h3 class="text-xl font-black mb-3 text-slate-800">Thu nhập đỉnh cao</h3>
-                    <p class="text-sm text-slate-500 font-medium">Lương cứng cơ bản + Hoa hồng hấp dẫn nhất thị trường. Thu nhập hoàn toàn không giới hạn, phụ thuộc 100% vào năng lực của bạn.</p>
-                </div>
-
-                <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-100 transition-all duration-300">
-                    <div class="w-16 h-16 mx-auto bg-cyan-50 text-cyan-500 rounded-2xl flex items-center justify-center text-3xl mb-6">
-                        <i class="bi bi-cpu-fill"></i>
-                    </div>
-                    <h3 class="text-xl font-black mb-3 text-slate-800">Hệ sinh thái FTA sẵn có</h3>
-                    <p class="text-sm text-slate-500 font-medium">Bạn không đơn độc! Nhận ngay tệp Data khách hàng tiềm năng và nền tảng quản trị thông minh FTA giúp tự động hóa 80% quy trình làm việc.</p>
-                </div>
-
-                <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 hover:-translate-y-2 hover:shadow-2xl hover:shadow-amber-100 transition-all duration-300">
-                    <div class="w-16 h-16 mx-auto bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center text-3xl mb-6">
-                        <i class="bi bi-rocket-fill"></i>
-                    </div>
-                    <h3 class="text-xl font-black mb-3 text-slate-800">Thăng tiến siêu tốc</h3>
-                    <p class="text-sm text-slate-500 font-medium">Chỉ từ 2 - 6 tháng để thăng cấp lên vị trí Quản lý. Được đào tạo bài bản và cấp chứng chỉ hành nghề danh giá từ Bộ Tài Chính.</p>
-                </div>
-            </div>
+    <section
+        class="py-24 relative overflow-hidden bg-gradient-to-b from-[#0b1121] to-slate-900 border-t border-white/5">
+        <div
+            class="absolute left-1/2 top-0 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/20 blur-[120px] rounded-[100%] pointer-events-none">
         </div>
-    </section>
 
-    <section id="job-info" class="py-16 relative z-10">
-        <div class="max-w-5xl mx-auto px-6">
-            <div class="bg-white/80 backdrop-blur-xl rounded-[3rem] p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-50 rounded-full blur-3xl group-hover:bg-indigo-100 transition-colors duration-500"></div>
-                
-                <div class="relative z-10 flex flex-col md:flex-row gap-8 items-center md:items-start justify-between">
-                    <div class="flex-1 text-center md:text-left">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-rose-50 text-rose-600 rounded-lg font-black text-[10px] uppercase tracking-widest mb-4 border border-rose-100">
-                            <i class="bi bi-fire animate-pulse text-sm"></i> Đang tuyển dụng
-                        </div>
-                        <h2 class="text-3xl md:text-4xl font-black text-slate-800 mb-2 leading-tight">
-                            Chuyên viên Khảo sát <br> & Phát triển thị trường
-                        </h2>
-                    </div>
-
-                    <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex items-start gap-4 hover:bg-indigo-50/50 transition-colors">
-                            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm shrink-0 text-lg"><i class="bi bi-person-check-fill"></i></div>
-                            <div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest m-0 mb-1">Yêu cầu</p>
-                                <p class="font-bold text-slate-700 text-sm m-0">Nam/Nữ 18-45 tuổi. Nhiệt huyết & cầu tiến.</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex items-start gap-4 hover:bg-emerald-50/50 transition-colors">
-                            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm shrink-0 text-lg"><i class="bi bi-clock-history"></i></div>
-                            <div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest m-0 mb-1">Thời gian</p>
-                                <p class="font-bold text-slate-700 text-sm m-0">Linh hoạt. Kết hợp Online & Trực tiếp.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="benefits" class="py-20 relative z-10">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center max-w-2xl mx-auto mb-16">
-                <p class="text-indigo-600 font-black text-[11px] uppercase tracking-[0.2em] mb-3">Đãi ngộ & Phúc lợi</p>
-                <h2 class="text-3xl md:text-4xl font-black mb-4 text-slate-800">Trải nghiệm làm việc hạng thương gia</h2>
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16" data-aos="zoom-in">
+                <h2 class="text-3xl md:text-5xl font-black mb-6 text-white">
+                    Nền tảng công nghệ <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">Độc
+                        Quyền</span>
+                </h2>
+                <p class="text-slate-400 max-w-2xl mx-auto text-lg">Hệ sinh thái All-in-one mạnh mẽ. Tự động hóa quy
+                    trình, tối ưu tỷ lệ chuyển đổi và nâng tầm trải nghiệm quản trị.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                <div class="lg:col-span-2 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-[2.5rem] p-8 md:p-10 shadow-2xl shadow-indigo-600/20 text-white relative overflow-hidden hover:-translate-y-2 transition-all duration-300">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+                <div class="glass-card md:col-span-2 p-8 rounded-[2.5rem] hover:border-indigo-500/50 transition-all duration-300 group relative overflow-hidden"
+                    data-aos="fade-up" data-aos-delay="100">
+                    <div
+                        class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/10 blur-3xl rounded-full group-hover:bg-indigo-500/20 transition-colors">
+                    </div>
+                    <div class="flex flex-col h-full justify-between relative z-10">
+                        <div>
+                            <div class="flex items-center gap-4 mb-4">
+                                <div
+                                    class="w-14 h-14 shrink-0 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                    <i class="bi bi-grid-1x2-fill"></i>
+                                </div>
+                                <h3 class="text-xl md:text-2xl font-black text-white m-0">Nền Tảng Quản Trị Toàn Diện
+                                </h3>
+                            </div>
+                            <p class="text-slate-400 text-sm leading-relaxed mb-6">Không gian làm việc số hóa giúp bạn
+                                theo dõi, tổ chức và vận hành mạng lưới kinh doanh một cách đồng bộ, minh bạch và mang
+                                lại hiệu suất tối đa.</p>
+                        </div>
+                        <div class="flex gap-3 overflow-hidden opacity-80 group-hover:opacity-100 transition-opacity">
+                            <div
+                                class="h-24 w-1/3 bg-slate-800/50 border border-slate-700 rounded-xl p-3 flex flex-col gap-2 shadow-inner">
+                                <div class="w-1/2 h-2 bg-slate-600 rounded-full"></div>
+                                <div class="w-full h-10 bg-indigo-500/20 border border-indigo-500/30 rounded-lg"></div>
+                            </div>
+                            <div
+                                class="h-24 w-1/3 bg-slate-800/50 border border-slate-700 rounded-xl p-3 flex flex-col gap-2 shadow-inner">
+                                <div class="w-2/3 h-2 bg-slate-600 rounded-full"></div>
+                                <div class="w-full h-10 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
+                                </div>
+                            </div>
+                            <div
+                                class="h-24 w-1/3 bg-slate-800/50 border border-slate-700 rounded-xl p-3 flex flex-col gap-2 shadow-inner">
+                                <div class="w-1/3 h-2 bg-slate-600 rounded-full"></div>
+                                <div class="w-full h-4 bg-slate-700 rounded border border-slate-600"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-[2.5rem] hover:border-fuchsia-500/50 transition-all duration-300 group relative overflow-hidden"
+                    data-aos="fade-up" data-aos-delay="200">
+                    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-fuchsia-500/10 blur-3xl rounded-full"></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div
+                                class="w-14 h-14 shrink-0 bg-fuchsia-500/20 border border-fuchsia-500/30 text-fuchsia-400 rounded-2xl flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
+                                <i class="bi bi-lightbulb-fill"></i>
+                            </div>
+                            <h3 class="text-xl md:text-2xl font-black text-white m-0">Công Nghệ Tiên Phong</h3>
+                        </div>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-6">Ứng dụng các giải pháp phân tích dữ liệu
+                            thông minh, hỗ trợ bạn đưa ra quyết định chính xác và luôn đi trước một bước.</p>
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1.5 bg-fuchsia-500/10 border border-fuchsia-500/20 rounded-lg text-fuchsia-300 text-[10px] font-black uppercase tracking-widest">
+                            <span class="animate-ping w-1.5 h-1.5 rounded-full bg-fuchsia-400"></span> Sẵn sàng đổi mới
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-[2.5rem] hover:border-emerald-500/50 transition-all duration-300 group"
+                    data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div
+                            class="w-14 h-14 shrink-0 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            <i class="bi bi-globe2"></i>
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-black text-white m-0">Kết Nối Chuyên Nghiệp</h3>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed m-0">Xây dựng và duy trì luồng tương tác mượt mà
+                        với khách hàng và đội nhóm, phá bỏ mọi rào cản về không gian và thời gian.</p>
+                </div>
+
+                <div class="glass-card p-8 rounded-[2.5rem] hover:border-amber-500/50 transition-all duration-300 group relative overflow-hidden"
+                    data-aos="fade-up" data-aos-delay="400">
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div
+                                class="w-14 h-14 shrink-0 bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center text-2xl group-hover:-translate-y-1 transition-transform">
+                                <i class="bi bi-award-fill"></i>
+                            </div>
+                            <h3 class="text-xl md:text-2xl font-black text-white m-0">Văn Hóa Ghi Nhận</h3>
+                        </div>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-4">Kiến tạo môi trường làm việc tích cực,
+                            vinh danh nỗ lực cá nhân kịp thời, khơi dậy nguồn cảm hứng và động lực vươn lên không ngừng.
+                        </p>
+                        <div class="flex items-center -space-x-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-sm z-30 shadow-md">
+                                🥇</div>
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-sm z-20 shadow-md opacity-80">
+                                🥈</div>
+                            <div
+                                class="w-8 h-8 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-sm z-10 shadow-md opacity-60">
+                                🥉</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card md:col-span-2 lg:col-span-1 p-8 rounded-[2.5rem] hover:border-cyan-500/50 transition-all duration-300 group"
+                    data-aos="fade-up" data-aos-delay="500">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div
+                            class="w-14 h-14 shrink-0 bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            <i class="bi bi-layers-fill"></i>
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-black text-white m-0">Tối Ưu Hóa Nguồn Lực</h3>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed m-0">Tự động hóa các thao tác thủ công, quản lý
+                        thời gian khôn ngoan để bạn có thể hoàn toàn tập trung vào việc kiến tạo những giá trị cốt lõi.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-16 text-center relative z-20" data-aos="fade-up" data-aos-delay="600">
+                <div class="relative inline-flex group cursor-default">
+                    <div
+                        class="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-fuchsia-500 to-indigo-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500">
+                    </div>
+
+                    <div
+                        class="relative flex items-center gap-3 md:gap-4 px-6 md:px-8 py-3 md:py-4 bg-[#0b1121] rounded-full border border-white/10 leading-none">
+                        <span class="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                            <span
+                                class="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-cyan-500 shadow-[0_0_10px_#22d3ee]"></span>
+                        </span>
+
+                        <span
+                            class="font-black text-[10px] md:text-sm uppercase tracking-[0.2em] md:tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-fuchsia-300 to-indigo-300">
+                            Và còn nhiều tính năng hơn thế nữa...
+                        </span>
+
+                        <span class="relative flex h-2.5 w-2.5 md:h-3 md:w-3">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"
+                                style="animation-delay: 0.5s"></span>
+                            <span
+                                class="relative inline-flex rounded-full h-2.5 w-2.5 md:h-3 md:w-3 bg-indigo-500 shadow-[0_0_10px_#818cf8]"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 relative z-10 bg-slate-900">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-black text-white">Lộ trình phát triển <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Thần
+                        Tốc</span></h2>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-white">
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-8 rounded-[2rem] shadow-xl hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group"
+                    data-aos="fade-up" data-aos-delay="100">
+                    <div
+                        class="absolute right-[0px] top-[-20px] text-white/20 text-8xl font-black group-hover:scale-110 transition-transform">
+                        1</div>
+                    <div class="relative z-10">
+                        <div class="text-indigo-200 text-sm font-bold uppercase tracking-widest mb-2">Tuần 1</div>
+                        <div class="text-2xl font-black">Đào tạo kiến thức <br>& Kỹ năng</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-cyan-500 to-blue-600 p-8 rounded-[2rem] shadow-xl hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group"
+                    data-aos="fade-up" data-aos-delay="200">
+                    <div
+                        class="absolute right-[-20px] top-[-20px] text-white/20 text-8xl font-black group-hover:scale-110 transition-transform">
+                        2</div>
+                    <div class="relative z-10">
+                        <div class="text-cyan-200 text-sm font-bold uppercase tracking-widest mb-2">Tháng 1</div>
+                        <div class="text-2xl font-black">Có Khách Hàng<br>& Chốt Deal</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-emerald-400 to-teal-600 p-8 rounded-[2rem] shadow-xl hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group"
+                    data-aos="fade-up" data-aos-delay="300">
+                    <div
+                        class="absolute right-[-20px] top-[-20px] text-white/20 text-8xl font-black group-hover:scale-110 transition-transform">
+                        3</div>
+                    <div class="relative z-10">
+                        <div class="text-emerald-200 text-sm font-bold uppercase tracking-widest mb-2">3 Tháng</div>
+                        <div class="text-2xl font-black">Thu nhập<br>15 ~ 30tr</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-amber-400 to-orange-500 p-8 rounded-[2rem] shadow-xl hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden group"
+                    data-aos="fade-up" data-aos-delay="400">
+                    <div
+                        class="absolute right-[-20px] top-[-20px] text-white/20 text-8xl font-black group-hover:scale-110 transition-transform">
+                        4</div>
+                    <div class="relative z-10">
+                        <div class="text-amber-100 text-sm font-bold uppercase tracking-widest mb-2">6 Tháng</div>
+                        <div class="text-2xl font-black">Thăng tiến<br>Leader</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="relative h-24 overflow-hidden z-0">
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-[#0b1121]"></div>
+    </div>
+
+    <section id="benefits" class="py-20 relative z-10 bg-[#0f172a]">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-16" data-aos="fade-up">
+                <p class="text-cyan-400 font-black text-[11px] uppercase tracking-[0.2em] mb-3">Đãi ngộ & Phúc lợi</p>
+                <h2 class="text-3xl md:text-5xl font-black mb-4 text-white">Không chỉ cho bạn<br><span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-indigo-400">Mà cho cả
+                        những người bạn quan tâm</span></h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 glass-card rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden hover:border-indigo-500/50 transition-colors duration-300 group"
+                    data-aos="fade-right">
+                    <div
+                        class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 group-hover:bg-indigo-500/40 transition-colors duration-500">
+                    </div>
                     <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                        <div class="w-24 h-24 bg-white/20 backdrop-blur-md rounded-[1.5rem] flex items-center justify-center text-5xl border border-white/30 shrink-0 shadow-lg shadow-black/10">
+                        <div
+                            class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-[1.5rem] flex items-center justify-center text-5xl border border-white/20 shrink-0 text-amber-300">
                             <i class="bi bi-wallet2"></i>
                         </div>
                         <div class="text-center md:text-left flex-1">
-                            <h3 class="text-3xl font-black mb-4 tracking-tight">Lương cứng <span class="text-amber-300">8.000.000đ</span></h3>
-                            <ul class="space-y-3 text-sm md:text-base font-medium text-indigo-50">
-                                <li class="flex items-center gap-2 justify-center md:justify-start"><i class="bi bi-check-circle-fill text-amber-300"></i> Đảm bảo thu nhập nền tảng vững chắc.</li>
-                                <li class="flex items-center gap-2 justify-center md:justify-start"><i class="bi bi-check-circle-fill text-amber-300"></i> Chưa bao gồm % Hoa hồng & Thưởng doanh số.</li>
-                                <li class="flex items-center gap-2 justify-center md:justify-start"><i class="bi bi-check-circle-fill text-amber-300"></i> Thu nhập thực tế <strong>KHÔNG GIỚI HẠN</strong>.</li>
+                            <h3 class="text-3xl font-black mb-4 tracking-tight">Lương từ <span
+                                    class="text-amber-300">8.000.000đ ++</span></h3>
+                            <ul class="space-y-3 text-sm md:text-base font-medium text-slate-300">
+                                <li class="flex items-center gap-2 justify-center md:justify-start"><i
+                                        class="bi bi-check-circle-fill text-amber-300"></i> Đảm bảo thu nhập nền tảng
+                                    vững chắc</li>
+                                <li class="flex items-center gap-2 justify-center md:justify-start"><i
+                                        class="bi bi-check-circle-fill text-amber-300"></i> Kèm theo nhiều khoản thưởng
+                                    khác</li>
+                                <li class="flex items-center gap-2 justify-center md:justify-start"><i
+                                        class="bi bi-check-circle-fill text-amber-300"></i> Thu nhập thực tế <strong
+                                        class="text-white">KHÔNG GIỚI HẠN</strong></li>
+                                <li class="flex items-center gap-2 justify-center md:justify-start"><i
+                                        class="bi bi-check-circle-fill text-amber-300"></i><strong class="text-white">DU
+                                        LỊCH MIỄN PHÍ</strong> trong nước và quốc tế</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-[2.5rem] p-8 hover-gradient-border shadow-sm border border-slate-100 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 group">
-                    <div class="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
-                        <i class="bi bi-shield-check"></i>
+                <div class="glass-card rounded-[2.5rem] p-8 hover:border-emerald-500/50 transition-colors duration-300 group"
+                    data-aos="fade-left">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div
+                            class="w-14 h-14 shrink-0 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-white m-0">Bảo hiểm toàn diện</h3>
                     </div>
-                    <h3 class="text-lg font-black text-slate-800 mb-4">Bảo hiểm toàn diện</h3>
-                    <ul class="space-y-2.5 text-sm text-slate-600 font-medium">
-                        <li class="flex items-start gap-2"><i class="bi bi-check text-emerald-500 text-lg leading-none"></i> BHXH: Hưu trí, tử tuất, ốm đau, thai sản.</li>
-                        <li class="flex items-start gap-2"><i class="bi bi-check text-emerald-500 text-lg leading-none"></i> BHYT: Hỗ trợ khám chữa bệnh.</li>
-                        <li class="flex items-start gap-2"><i class="bi bi-check text-emerald-500 text-lg leading-none"></i> BHTN & Bảo hiểm Tai nạn lao động.</li>
+                    <ul class="space-y-3 text-base text-slate-300 font-medium">
+                        <li class="flex items-start gap-2"><i
+                                class="bi bi-check text-emerald-400 text-xl leading-none"></i> <strong
+                                class="text-white">BHXH:</strong> Hưu trí, tử tuất, ốm đau</li>
+                        <li class="flex items-start gap-2"><i
+                                class="bi bi-check text-emerald-400 text-xl leading-none"></i> <strong
+                                class="text-white">BHYT:</strong> Hỗ trợ khám chữa bệnh</li>
+                        <li class="flex items-start gap-2"><i
+                                class="bi bi-check text-emerald-400 text-xl leading-none"></i> Bảo hiểm Thất nghiệp -
+                            Bảo hiểm Tai nạn</li>
+                        <li class="flex items-start gap-2"><i
+                                class="bi bi-check text-emerald-400 text-xl leading-none"></i> Bảo hiểm Tai nạn <strong
+                                class="text-white">cho người thân</strong></li>
+                        <li class="flex items-start gap-2"><i
+                                class="bi bi-check text-emerald-400 text-xl leading-none"></i> Bảo hiểm Sức khỏe <strong
+                                class="text-white">cho người thân</strong></li>
                     </ul>
                 </div>
-
-                <div class="lg:col-span-3 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 rounded-[2.5rem] p-8 md:p-10 shadow-2xl shadow-orange-500/20 text-white relative overflow-hidden hover:-translate-y-2 transition-all duration-300 group">
-                    <div class="absolute -top-20 -right-20 w-72 h-72 bg-white/20 rounded-full blur-[80px]"></div>
-                    <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-yellow-300/20 rounded-full blur-[80px]"></div>
-
-                    <div class="relative z-10 flex flex-col sm:flex-row items-center gap-8">
-                        <div class="w-20 h-20 bg-white/20 backdrop-blur-md text-white rounded-[1.5rem] flex items-center justify-center text-4xl shrink-0 border border-white/40 group-hover:rotate-12 group-hover:scale-110 transition-all duration-500">
-                            <i class="bi bi-airplane-fill"></i>
-                        </div>
-                        <div class="text-center sm:text-left">
-                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-yellow-200 mb-1 animate-pulse">Đặc quyền vinh danh</p>
-                            <h3 class="text-2xl md:text-3xl font-black mb-4">Du lịch & Tưởng thưởng VIP</h3>
-                            <ul class="flex flex-col sm:flex-row gap-4 sm:gap-8 text-sm md:text-base font-bold text-white/90">
-                                <li class="flex items-center justify-center sm:justify-start gap-2"><i class="bi bi-star-fill text-yellow-300"></i> Du lịch Miễn phí 100%</li>
-                                <li class="flex items-center justify-center sm:justify-start gap-2"><i class="bi bi-star-fill text-yellow-300"></i> Thưởng nóng Hàng Tháng/Quý</li>
-                                <li class="flex items-center justify-center sm:justify-start gap-2"><i class="bi bi-star-fill text-yellow-300"></i> Vinh danh sân khấu lớn</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </section>
 
-    <section class="py-24 relative z-10" id="apply">
-        <div class="max-w-5xl mx-auto px-6">
-            <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
-                <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px]"></div>
-                <div class="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px]"></div>
+    <section class="py-20 relative bg-[#0b1121] overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6" data-aos="fade-up">
+            <h2 class="text-3xl font-black text-center text-white mb-12">Những người tiên phong</h2>
 
-                <div class="relative z-10 space-y-6">
-                    <p class="text-rose-400 text-sm md:text-base font-black uppercase tracking-widest animate-pulse flex items-center justify-center gap-2">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Chỉ còn đúng 07 vị trí trong tháng này
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 rounded-[2rem] text-white shadow-lg border-t-2 border-t-cyan-500">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="relative">
+                            <img src="https://i.pravatar.cc/100?img=11"
+                                class="w-12 h-12 rounded-full border-2 border-cyan-400 relative z-10">
+                            <div class="absolute inset-0 bg-cyan-400 rounded-full blur-md opacity-50 z-0"></div>
+                        </div>
+                        <div>
+                            <div class="font-bold text-lg">Nguyễn Đình Nam</div>
+                            <div class="text-xs text-cyan-300 font-black uppercase tracking-wider">12 tháng – 22tr</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed italic">
+                        "Hệ thống công nghệ của công ty hỗ trợ quản lý tệp khách hàng rất sát sao. Không có kinh nghiệm
+                        sale trước đó nhưng vẫn có thu nhập cực tốt nhờ nền tảng."
                     </p>
-                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight">Nắm bắt cơ hội ngay!</h2>
-                    <p class="text-slate-300 text-lg max-w-xl mx-auto font-medium mb-8">Trở thành phiên bản xuất sắc nhất của chính bạn cùng BRICS Việt Nam.</p>
+                </div>
 
-                    <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                        <a href="https://zalo.me/your_phone" target="_blank" class="px-8 py-4 bg-indigo-500 hover:bg-indigo-400 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3 shadow-lg shadow-indigo-500/30 hover:-translate-y-1">
-                            <i class="bi bi-chat-dots-fill text-xl"></i> Chat Zalo Tư vấn
-                        </a>
-                        <a href="#apply" class="px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3 hover:-translate-y-1">
-                            <i class="bi bi-file-earmark-person-fill text-xl"></i> Đăng ký nhanh
-                        </a>
+                <div class="glass-card p-6 rounded-[2rem] text-white shadow-lg border-t-2 border-t-indigo-500">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="relative">
+                            <img src="https://i.pravatar.cc/100?img=40"
+                                class="w-12 h-12 rounded-full border-2 border-indigo-400 relative z-10">
+                            <div class="absolute inset-0 bg-indigo-400 rounded-full blur-md opacity-50 z-0"></div>
+                        </div>
+                        <div>
+                            <div class="font-bold text-lg">Trần Thị Như</div>
+                            <div class="text-xs text-indigo-300 font-black uppercase tracking-wider">Thăng cấp Quản lý
+                            </div>
+                        </div>
                     </div>
+                    <p class="text-sm text-slate-300 leading-relaxed italic">
+                        "Chính sách thưởng vinh danh rõ ràng và lộ trình thăng tiến minh bạch. Đội ngũ Leader cực kỳ
+                        nhiệt huyết."
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-[2rem] text-white shadow-lg border-t-2 border-t-pink-500">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="relative">
+                            <img src="https://i.pravatar.cc/100?img=5"
+                                class="w-12 h-12 rounded-full border-2 border-pink-400 relative z-10">
+                            <div class="absolute inset-0 bg-pink-400 rounded-full blur-md opacity-50 z-0"></div>
+                        </div>
+                        <div>
+                            <div class="font-bold text-lg">Thư Louis</div>
+                            <div class="text-xs text-pink-300 font-black uppercase tracking-wider">Top Sale Tháng 3
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed italic">
+                        "Cơ chế tính thưởng rõ ràng và dễ hiểu. Nền tảng số giúp tôi theo dõi chính xác doanh số mỗi
+                        ngày."
+                    </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="text-center py-10 border-t border-slate-200 bg-white relative z-10">
-        <div class="flex justify-center items-center gap-2 mb-4">
-            <img src="/img/logo.png" alt="BRICS Logo" class="h-6 opacity-50 grayscale" onerror="this.src='/img/default-logo.png'">
+    <section id="apply" class="py-32 bg-black text-white text-center relative overflow-hidden border-t border-white/10 z-10">
+        <div
+            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-pink-600 to-indigo-600 rounded-full blur-[150px] opacity-40 mix-blend-screen pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-3xl mx-auto px-6" data-aos="zoom-in">
+            <p
+                class="text-pink-400 text-sm md:text-base font-black uppercase tracking-widest animate-pulse flex items-center justify-center gap-2 mb-6">
+                <i class="bi bi-exclamation-triangle-fill"></i> Chỉ còn đúng <span
+                    class="text-3xl font-black mx-1">
+                    <%= Math.floor(Math.random() * 9 + 1).toString().padStart(2, '0' ) %>
+                </span> vị trí trong tháng này
+            </p>
+
+
+            <h2 class="text-5xl md:text-7xl font-black mb-8 tracking-tight">
+                Hành động ngay!
+            </h2>
+            <p class="text-slate-300 text-lg mb-12">Trở thành phiên bản xuất sắc nhất của chính bạn cùng BRICS Việt Nam.
+            </p>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-6">
+                <a href="https://zalo.me/1614027932634300720" target="_blank"
+                    class="px-10 py-5 bg-gradient-to-r from-pink-500 to-indigo-500 rounded-2xl text-white font-black uppercase tracking-widest shadow-[0_0_40px_rgba(236,72,153,0.5)] hover:scale-110 hover:shadow-[0_0_60px_rgba(236,72,153,0.7)] transition-all duration-300 flex items-center justify-center gap-3">
+                    <i class="bi bi-chat-dots-fill text-xl"></i> APPLY QUA ZALO
+                </a>
+
+                <button onclick="openApplyModal()"
+                    class="px-10 py-5 glass-card text-white border border-white/30 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3">
+                    <i class="bi bi-file-earmark-person-fill text-xl"></i> ĐIỀN FORM ĐĂNG KÝ
+                </button>
+            </div>
         </div>
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] m-0">
+    </section>
+
+    <footer class="text-center py-10 border-t border-white/10 bg-black relative z-10">
+        <div class="flex justify-center items-center gap-2 mb-4">
+            <img src="/img/logo.png" alt="BRICS Logo"
+                class="h-6 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all"
+                onerror="this.src='/img/default-logo.png'">
+        </div>
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] m-0">
             © <%= new Date().getFullYear() %> BRICS VIETNAM. Nền tảng công nghệ dành riêng cho FTA.
         </p>
     </footer>
 
+    <div id="applyModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeApplyModal()"></div>
+
+        <div
+            class="max-w-md w-full bg-white rounded-[2rem] shadow-2xl p-6 md:p-8 relative z-10 animate-[slideDown_0.3s_ease-out]">
+            <button onclick="closeApplyModal()"
+                class="absolute top-4 right-6 text-slate-400 hover:text-slate-600 text-4xl font-light">&times;</button>
+
+            <div class="text-center mb-6 mt-2">
+                <h3 class="text-2xl font-black text-slate-800">Gia Nhập Cùng Chúng Tôi</h3>
+                <p class="text-sm font-bold text-slate-500 mt-2">Bắt đầu hành trình sự nghiệp tại BRICS Việt Nam</p>
+            </div>
+
+            <form id="formApply" enctype="multipart/form-data" class="space-y-4 text-left">
+                <input type="hidden" name="referral_code" id="referral_code" value="">
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Họ và
+                        Tên *</label>
+                    <input type="text" name="full_name" required placeholder="Nguyễn Văn A"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Số
+                        điện thoại *</label>
+                    <input type="tel" name="phone_1" required placeholder="09xx xxx xxx" maxlength="11"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                </div>
+
+                <div>
+                    <label
+                        class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Email</label>
+                    <input type="email" name="email" placeholder="email@example.com"
+                        class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Tải
+                        lên CV (PDF/DOCX)</label>
+                    <input type="file" name="cv_file" accept=".pdf,.doc,.docx"
+                        class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition-all cursor-pointer">
+                </div>
+
+                <button type="submit" id="btnSubmitApply"
+                    class="w-full py-4 mt-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-emerald-200 active:scale-95">
+                    GỬI HỒ SƠ ỨNG TUYỂN
+                </button>
+            </form>
+        </div>
+    </div>
     <script>
-        document.addEventListener('mousemove', (e) => {
-            const cursor = document.getElementById('cursor-glow');
-            if(cursor) {
-                cursor.style.opacity = '1';
-                // RequestAnimationFrame giúp hiệu ứng mượt mà hơn và không giật lag
-                requestAnimationFrame(() => {
-                    cursor.style.transform = `translate(calc(${e.clientX}px - 50%), calc(${e.clientY}px - 50%))`;
+        AOS.init({
+            once: true,
+            offset: 50,
+            duration: 800,
+            easing: 'ease-out-cubic',
+        });
+
+        // 2. Navbar Background & Highlight Section
+        const sections = document.querySelectorAll("section[id]");
+        const navLinks = document.querySelectorAll(".nav-link");
+
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('shadow-[0_4px_30px_rgba(0,0,0,0.5)]');
+                nav.style.background = 'rgba(15, 23, 42, 0.85)';
+            } else {
+                nav.classList.remove('shadow-[0_4px_30px_rgba(0,0,0,0.5)]');
+                nav.style.background = 'rgba(15, 23, 42, 0.6)';
+            }
+
+            // Highlight Logic
+            let current = "";
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= (sectionTop - sectionHeight / 3)) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove("active");
+                if (link.getAttribute("href") === `#${current}`) {
+                    link.classList.add("active");
+                }
+            });
+        });
+
+        // 3. Hiệu ứng Parallax nhẹ ở Hero
+        document.addEventListener("mousemove", (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+            document.querySelectorAll(".parallax-layer").forEach(el => {
+                const speed = el.getAttribute('data-speed') || 1;
+                el.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+            });
+        });
+
+        // ==============================================
+        // SCRIPT XỬ LÝ MODAL VÀ FORM ỨNG TUYỂN
+        // ==============================================
+
+        // 1. Hàm Mở / Đóng Modal
+        function openApplyModal() {
+            document.getElementById('applyModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Khóa cuộn trang khi mở popup
+        }
+
+        function closeApplyModal() {
+            document.getElementById('applyModal').classList.add('hidden');
+            document.body.style.overflow = 'auto'; // Mở lại cuộn trang
+        }
+
+        // 2. Tự động bắt mã giới thiệu (Referral Code) từ Link
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+            if (refCode) {
+                document.getElementById('referral_code').value = refCode;
+                // Nếu có mã giới thiệu -> Tự động bật Form luôn cho ứng viên điền
+                openApplyModal();
+            }
+        });
+
+        // Biến trạng thái kiểm tra xem có đang upload không
+        let isSubmitting = false;
+
+        // Cảnh báo nếu người dùng cố tình đóng tab/F5 khi đang upload
+        window.addEventListener('beforeunload', function (e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                e.returnValue = 'Hồ sơ của bạn đang được tải lên, bạn có chắc chắn muốn thoát không?';
+            }
+        });
+
+        // 3. Xử lý Gửi Form bằng AJAX
+        document.getElementById('formApply').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            isSubmitting = true; // Khóa cảnh báo
+            const btn = document.getElementById('btnSubmitApply');
+            btn.innerHTML = 'ĐANG XỬ LÝ...';
+            btn.disabled = true;
+
+            const formData = new FormData(this);
+
+            try {
+                // Developer nhớ khai báo Route này trong file routes.js nhé
+                const response = await fetch('/api/recruitment/apply', {
+                    method: 'POST',
+                    body: formData // Truyền nguyên formData để gửi kèm File CV
                 });
+
+                // Kiểm tra nếu server trả về lỗi (như 404, 500)
+                if (!response.ok) {
+                    throw new Error('Lỗi máy chủ: ' + response.status);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('🎉 Cảm ơn bạn! Hồ sơ đã được gửi thành công. Chúng tôi sẽ liên hệ sớm nhất.');
+                    this.reset();
+                    closeApplyModal();
+                } else {
+                    alert('Lỗi: ' + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Lỗi kết nối máy chủ! Vui lòng thử lại sau.');
+            } finally {
+                isSubmitting = false; // Gỡ khóa cảnh báo khi xong
+                btn.innerHTML = 'GỬI HỒ SƠ ỨNG TUYỂN';
+                btn.disabled = false;
             }
         });
     </script>

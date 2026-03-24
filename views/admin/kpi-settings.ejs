@@ -41,24 +41,28 @@
             
             <div class="lg:col-span-5 space-y-6">
                 <div class="card-custom bg-white p-6 md:p-8 shadow-sm">
-                    <h2 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                        <i class="bi bi-plus-circle-fill text-teal-600"></i> Tạo chiến dịch mới
+                    <h2 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-2" id="formTitle">
+                        <i class="bi bi-plus-circle-fill text-teal-600" id="formIcon"></i> <span id="formTitleText">Tạo chiến dịch mới</span>
                     </h2>
 
-                    <form action="/admin/kpi-settings/create" method="POST" class="space-y-5">
+                    <form id="kpiForm" action="/admin/kpi-settings/create" method="POST" class="space-y-5">
                         <div>
                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Tên chương trình *</label>
-                            <input type="text" name="title" required placeholder="VD: Thi đua bức phá tháng 3" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all font-bold text-slate-800 text-sm">
+                            <input type="text" name="title" id="form_title" required placeholder="VD: Thi đua bức phá tháng 3" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all font-bold text-slate-800 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Mô tả (Tùy chọn)</label>
+                            <textarea name="description" id="form_description" placeholder="Ghi chú thêm..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none transition-all font-bold text-slate-800 text-sm"></textarea>
                         </div>
                         
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Từ ngày *</label>
-                                <input type="datetime-local" name="start_date" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none font-bold text-slate-800 text-sm">
+                                <input type="datetime-local" name="start_date" id="form_start_date" required step="1" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none font-bold text-slate-800 text-sm">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Đến ngày *</label>
-                                <input type="datetime-local" name="end_date" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none font-bold text-slate-800 text-sm">
+                                <input type="datetime-local" name="end_date" id="form_end_date" required step="1" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-teal-500 outline-none font-bold text-slate-800 text-sm">
                             </div>
                         </div>
 
@@ -68,40 +72,49 @@
                                 <p class="text-[10px] font-bold text-indigo-500 mt-1">Cho phép tính điểm song song cùng lúc nhiều chiến dịch.</p>
                             </div>
                             <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" name="is_stackable" value="1" id="toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 transition-all right-6 border-slate-300"/>
-                                <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors"></label>
+                                <input type="checkbox" name="is_stackable" value="1" id="form_is_stackable" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer z-10 transition-all right-6 border-slate-300"/>
+                                <label for="form_is_stackable" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors"></label>
                             </div>
                         </div>
 
                         <div class="pt-4 border-t border-slate-100">
                             <h3 class="text-sm font-black text-slate-800 mb-4"><i class="bi bi-star-fill text-amber-400"></i> Định nghĩa điểm số (Point/lần)</h3>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Dự Khóa học</label>
-                                    <input type="number" name="point_study" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
+                                    <input type="number" name="point_study" id="form_point_study" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Dự Cuộc họp</label>
-                                    <input type="number" name="point_meeting" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
+                                    <input type="number" name="point_meeting" id="form_point_meeting" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Mỗi Phiếu KS</label>
-                                    <input type="number" name="point_survey" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
+                                    <input type="number" name="point_survey" id="form_point_survey" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Khách Dự Sự kiện</label>
-                                    <input type="number" name="point_event_default" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
+                                    <input type="number" name="point_event_default" id="form_point_event_default" value="0" min="0" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-center text-slate-800">
                                 </div>
-                                <div class="col-span-2">
+                                <div>
+                                    <label class="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 pl-2">Tuyển Dụng</label>
+                                    <input type="number" name="point_recruit" id="form_point_recruit" value="0" min="0" class="w-full p-3 bg-blue-50 border border-blue-200 rounded-xl font-black text-center text-blue-700">
+                                </div>
+                                <div class="col-span-2 md:col-span-3">
                                     <label class="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1 pl-2">Khách hàng Active (Xác nhận thủ công)</label>
-                                    <input type="number" name="point_active" value="0" min="0" class="w-full p-4 bg-emerald-50 border border-emerald-200 rounded-xl font-black text-center text-emerald-700 text-lg">
+                                    <input type="number" name="point_active" id="form_point_active" value="0" min="0" class="w-full p-4 bg-emerald-50 border border-emerald-200 rounded-xl font-black text-center text-emerald-700 text-lg">
                                 </div>
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full py-4 bg-teal-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-teal-700 transition-all shadow-lg shadow-teal-200 active:scale-95 flex justify-center items-center gap-2">
-                            <i class="bi bi-floppy-fill"></i> LƯU CHIẾN DỊCH MỚI
-                        </button>
+                        <div class="flex gap-2">
+                            <button type="submit" id="btnSubmitForm" class="flex-1 py-4 bg-teal-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-teal-700 transition-all shadow-lg shadow-teal-200 active:scale-95 flex justify-center items-center gap-2">
+                                <i class="bi bi-floppy-fill"></i> LƯU MỚI
+                            </button>
+                            <button type="button" id="btnCancelEdit" onclick="cancelEditMode()" class="hidden px-6 py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">
+                                Hủy
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -140,11 +153,12 @@
                                     </p>
                                 </div>
 
-                                <div class="grid grid-cols-5 gap-2 bg-slate-50 rounded-xl p-3 border border-slate-100 mb-4 text-center">
+                                <div class="grid grid-cols-3 md:grid-cols-6 gap-2 bg-slate-50 rounded-xl p-3 border border-slate-100 mb-4 text-center">
                                     <div><p class="text-[9px] text-slate-400 font-black uppercase">Khóa học</p><p class="font-black text-slate-800"><%= program.point_study %></p></div>
                                     <div><p class="text-[9px] text-slate-400 font-black uppercase">Cuộc họp</p><p class="font-black text-slate-800"><%= program.point_meeting %></p></div>
                                     <div><p class="text-[9px] text-slate-400 font-black uppercase">Khảo sát</p><p class="font-black text-slate-800"><%= program.point_survey %></p></div>
                                     <div><p class="text-[9px] text-amber-500 font-black uppercase">Sự kiện</p><p class="font-black text-amber-600"><%= program.point_event_default %></p></div>
+                                    <div><p class="text-[9px] text-blue-500 font-black uppercase">Tuyển dụng</p><p class="font-black text-blue-600"><%= program.point_recruit || 0 %></p></div>
                                     <div><p class="text-[9px] text-emerald-500 font-black uppercase">Active</p><p class="font-black text-emerald-600"><%= program.point_active %></p></div>
                                 </div>
 
@@ -158,12 +172,27 @@
                                         <button onclick="recalculatePoints(<%= program.id %>)" class="px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-lg text-[10px] uppercase tracking-widest font-black transition-colors flex items-center gap-1 shadow-sm">
                                             <i class="bi bi-arrow-repeat"></i> Đồng bộ
                                         </button>
-                                        <button class="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-lg text-xs font-black transition-colors">
+                                        <button onclick="editProgram(this)" 
+                                            data-id="<%= program.id %>"
+                                            data-title="<%= program.title %>"
+                                            data-description="<%= program.description || '' %>"
+                                            data-start="<%= program.start_date %>"
+                                            data-end="<%= program.end_date %>"
+                                            data-stackable="<%= program.is_stackable %>"
+                                            data-study="<%= program.point_study %>"
+                                            data-meeting="<%= program.point_meeting %>"
+                                            data-survey="<%= program.point_survey %>"
+                                            data-event="<%= program.point_event_default %>"
+                                            data-recruit="<%= program.point_recruit || 0 %>"
+                                            data-active="<%= program.point_active %>"
+                                            class="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-lg text-xs font-black transition-colors">
                                             <i class="bi bi-pencil-square"></i> Sửa
                                         </button>
-                                        <button class="px-3 py-1.5 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-lg text-xs font-black transition-colors">
-                                            <i class="bi bi-trash3"></i>
-                                        </button>
+                                        <form action="/admin/kpi-settings/delete/<%= program.id %>" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa vĩnh viễn KPI này không?');" class="m-0">
+                                            <button type="submit" class="px-3 py-1.5 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-lg text-xs font-black transition-colors">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -175,6 +204,49 @@
     </main>
 
     <script>
+    function formatDateForInputLocal(dateStr) {
+        if (!dateStr || dateStr === 'null') return '';
+        const d = new Date(dateStr);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0,19);
+    }
+
+    function editProgram(btn) {
+        document.getElementById('kpiForm').action = '/admin/kpi-settings/edit/' + btn.getAttribute('data-id');
+        
+        document.getElementById('formTitleText').innerText = 'Chỉnh sửa chiến dịch';
+        document.getElementById('formIcon').className = 'bi bi-pencil-square text-indigo-600';
+        document.getElementById('btnSubmitForm').innerHTML = '<i class="bi bi-check-circle-fill"></i> CẬP NHẬT';
+        document.getElementById('btnSubmitForm').className = 'flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 active:scale-95 flex justify-center items-center gap-2';
+        document.getElementById('btnCancelEdit').classList.remove('hidden');
+
+        document.getElementById('form_title').value = btn.getAttribute('data-title');
+        document.getElementById('form_description').value = btn.getAttribute('data-description');
+        document.getElementById('form_start_date').value = formatDateForInputLocal(btn.getAttribute('data-start'));
+        document.getElementById('form_end_date').value = formatDateForInputLocal(btn.getAttribute('data-end'));
+        document.getElementById('form_is_stackable').checked = btn.getAttribute('data-stackable') == '1';
+        
+        document.getElementById('form_point_study').value = btn.getAttribute('data-study');
+        document.getElementById('form_point_meeting').value = btn.getAttribute('data-meeting');
+        document.getElementById('form_point_survey').value = btn.getAttribute('data-survey');
+        document.getElementById('form_point_event_default').value = btn.getAttribute('data-event');
+        document.getElementById('form_point_recruit').value = btn.getAttribute('data-recruit');
+        document.getElementById('form_point_active').value = btn.getAttribute('data-active');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelEditMode() {
+        document.getElementById('kpiForm').reset();
+        document.getElementById('kpiForm').action = '/admin/kpi-settings/create';
+        
+        document.getElementById('formTitleText').innerText = 'Tạo chiến dịch mới';
+        document.getElementById('formIcon').className = 'bi bi-plus-circle-fill text-teal-600';
+        document.getElementById('btnSubmitForm').innerHTML = '<i class="bi bi-floppy-fill"></i> LƯU CHIẾN DỊCH MỚI';
+        document.getElementById('btnSubmitForm').className = 'flex-1 py-4 bg-teal-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-teal-700 transition-all shadow-lg shadow-teal-200 active:scale-95 flex justify-center items-center gap-2';
+        document.getElementById('btnCancelEdit').classList.add('hidden');
+    }
+
     async function recalculatePoints(programId) {
         if(!confirm('Hệ thống sẽ quét lại toàn bộ lịch sử Khách hàng/Sự kiện để tính lại điểm cho chiến dịch này. Bạn có chắc chắn?')) return;
         

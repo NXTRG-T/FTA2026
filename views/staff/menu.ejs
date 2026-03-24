@@ -61,20 +61,30 @@
                 <i class="bi bi-box-arrow-right text-lg"></i> Thoát
             </a> 
 
-            <!-- Ẩn nút Sửa giao diện trên Mobile (Chỉ hiện từ màn hình md trở lên) để tránh lưu nhầm layout 1 cột -->
-            <button id="btn-edit-mode" onclick="enableEditMode()" class="hidden md:flex px-5 py-2.5 md:px-6 md:py-3 bg-white/60 backdrop-blur-md border border-white/80 text-indigo-600 hover:bg-indigo-50 rounded-xl font-black text-xs uppercase tracking-widest transition-all items-center gap-2 shadow-sm active:scale-95">
-                <i class="bi bi-pencil-square text-lg"></i> Sửa Giao Diện
-            </button> 
+            <% if (allow_staff_edit_layout !== '0') { %> 
+                <button id="btn-edit-mode" onclick="enableEditMode()" class="flex w-full md:w-auto px-5 py-2.5 md:px-6 md:py-3 bg-white/60 backdrop-blur-md border border-white/80 text-indigo-600 hover:bg-indigo-50 rounded-xl font-black text-xs uppercase tracking-widest transition-all items-center justify-center gap-2 shadow-sm active:scale-95">
+                    <i class="bi bi-pencil-square text-lg"></i> Sửa Giao Diện
+                </button> 
+            <% } %>
+
+            <div id="device-toggle" class="hidden items-center bg-white/80 backdrop-blur-md p-1 rounded-xl shadow-sm border border-slate-200 w-full md:w-auto">
+                <button id="btn-desktop" onclick="switchDeviceMode('desktop')" class="btn-device flex-1 md:flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all ring-2 ring-indigo-500 bg-indigo-50 flex items-center justify-center gap-2">
+                    <i class="bi bi-display"></i> Máy tính
+                </button>
+                <button id="btn-mobile" onclick="switchDeviceMode('mobile')" class="btn-device flex-1 md:flex-none px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all hover:bg-slate-100 flex items-center justify-center gap-2">
+                    <i class="bi bi-phone"></i> Điện thoại
+                </button>
+            </div>
             
-            <div id="edit-controls" class="hidden items-center gap-2 animate-[fadeIn_0.3s_ease-out]">
-                <button onclick="resetDashboardLayout()" class="px-4 py-3 bg-rose-100/80 backdrop-blur-md text-rose-600 hover:bg-rose-200 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2" title="Khôi phục mặc định">
+            <div id="edit-controls" class="hidden flex-col md:flex-row items-center gap-2 w-full md:w-auto animate-[fadeIn_0.3s_ease-out]">
+                <button onclick="resetDashboardLayout()" class="w-full md:w-auto px-4 py-3 bg-rose-100/80 backdrop-blur-md text-rose-600 hover:bg-rose-200 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2" title="Khôi phục mặc định">
                     <i class="bi bi-arrow-counterclockwise"></i> Reset
                 </button> 
 
-                <button onclick="cancelEdit()" class="px-5 py-3 bg-slate-100/80 backdrop-blur-md text-slate-600 hover:bg-slate-200 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2">
+                <button onclick="cancelEdit()" class="w-full md:w-auto px-5 py-3 bg-slate-100/80 backdrop-blur-md text-slate-600 hover:bg-slate-200 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2">
                     <i class="bi bi-x-lg"></i> Hủy
                 </button> 
-                <button onclick="saveDashboardLayout()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-200 flex items-center gap-2 transition-all active:scale-95">
+                <button onclick="saveDashboardLayout()" class="w-full md:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 transition-all active:scale-95">
                     <i class="bi bi-check-lg"></i> Lưu & Đóng
                 </button>
             </div>
@@ -194,6 +204,24 @@
                 </div>
             </div>
 
+            <div class="grid-stack-item" gs-id="widget_recruitment" gs-x="10" gs-y="1" gs-w="2" gs-h="1" gs-min-w="2" gs-min-h="1">
+                <div class="grid-stack-item-content">
+                    <a href="/staff/recruitment" class="w-full h-full relative bg-white/40 backdrop-blur-xl border border-white/60 p-3 md:p-5 rounded-[1.2rem] md:rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] group overflow-hidden flex flex-row items-center justify-start gap-3 md:gap-4 text-left hover:shadow-[0_15px_30px_rgba(245,158,11,0.15)] transition-shadow">
+                        <% if (typeof newCandidatesCount !== 'undefined' && newCandidatesCount > 0) { %>
+                            <span class="absolute top-2 right-2 md:top-3 md:right-3 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-bounce shadow-md border border-white/50 z-20 flex items-center justify-center min-w-[20px] md:min-w-[24px]">
+                                <%= newCandidatesCount %> MỚI
+                            </span>
+                        <% } %>
+                        <div class="relative z-10 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-tr from-amber-400 to-orange-500 text-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-inner border border-white/50 group-hover:scale-110 transition-transform shrink-0">
+                            <i class="bi bi-person-lines-fill text-xl md:text-2xl"></i>
+                        </div>
+                        <div class="relative z-10 flex-1 min-w-0">
+                            <span class="text-sm md:text-base font-black text-slate-700 uppercase tracking-tight leading-tight truncate block w-full">Tuyển dụng</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
             <!-- <div class="grid-stack-item" gs-id="widget_logout" gs-x="10" gs-y="1" gs-w="2" gs-h="1" gs-min-w="2" gs-min-h="1">
                 <div class="grid-stack-item-content">
                     <a href="/auth/logout" onclick="return confirm('Đăng xuất khỏi hệ thống?');" class="w-full h-full relative bg-white/20 backdrop-blur-xl border border-white/40 p-3 md:p-5 rounded-[1.2rem] md:rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.02)] group overflow-hidden flex flex-row items-center justify-start gap-3 md:gap-4 text-left hover:bg-rose-50/50 hover:border-rose-200 transition-colors">
@@ -214,27 +242,45 @@
     <script>
         let grid;
         let tempLayout = null;
+        let savedLayoutData = { desktop: [], mobile: [] };
+        let currentMode = window.innerWidth >= 768 ? 'desktop' : 'mobile';
 
         const clickSound = new Audio("data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
         clickSound.volume = 0.5; 
 
         document.addEventListener('DOMContentLoaded', () => {
-            let savedLayout = [];
             try {
-                savedLayout = <%- typeof dashboard_layout !== 'undefined' && dashboard_layout ? dashboard_layout : '[]' %>;
+                let rawLayout = <%- typeof dashboard_layout !== 'undefined' && dashboard_layout && dashboard_layout !== 'null' ? dashboard_layout : 'null' %>;
+                if (rawLayout) {
+                    if (Array.isArray(rawLayout)) {
+                        savedLayoutData = { desktop: rawLayout, mobile: [] };
+                    } else {
+                        savedLayoutData = rawLayout;
+                    }
+                }
             } catch(e) { console.error("Lỗi dữ liệu layout", e); } 
+
+            localStorage.setItem('fta_layout_staff_' + '<%= typeof req !== "undefined" && req.session ? req.session.userId : "" %>', JSON.stringify(savedLayoutData));
             
             grid = GridStack.init({
                 cellHeight: '140px', 
                 margin: 10,          
                 animate: true,
-                staticGrid: true,
-                resizable: { handles: 'e, se, s, sw, w' } 
+                staticGrid: <%= allow_staff_edit_layout === '0' ? 'true' : 'false' %>,
+                resizable: { handles: 'e, se, s, sw, w' },
+                disableOneColumnMode: true
             });
 
-            if (savedLayout && savedLayout.length > 0) {
-                // Dùng hàm grid.load để sắp xếp tổng thể, tránh việc các widget xô đẩy nhau (Collision)
-                grid.load(savedLayout, false); 
+            if (currentMode === 'mobile') {
+                grid.column(1, 'none');
+                document.querySelector('.grid-stack').style.maxWidth = '400px';
+                document.querySelector('.grid-stack').style.margin = '0 auto';
+            } else {
+                grid.column(12, 'none');
+            }
+
+            if (savedLayoutData[currentMode] && savedLayoutData[currentMode].length > 0) {
+                grid.load(savedLayoutData[currentMode], false);
             }
 
             // SSE Realtime Notifications
@@ -259,11 +305,54 @@
             eventSource.onerror = function() { console.log("Thử lại kết nối SSE..."); }; 
         });
 
+        // Auto-save on exit
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden' && !grid.opts.staticGrid) {
+                saveNgam();
+            }
+        });
+
+        function saveNgam() {
+            savedLayoutData[currentMode] = grid.engine.nodes.map(n => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h }));
+            localStorage.setItem('fta_layout_staff_' + '<%= typeof req !== "undefined" && req.session ? req.session.userId : "" %>', JSON.stringify(savedLayoutData));
+            navigator.sendBeacon('/staff/dashboard/save-layout', new Blob([JSON.stringify({ 
+                desktop_layout: savedLayoutData.desktop,
+                mobile_layout: savedLayoutData.mobile
+            })], {type: 'application/json'}));
+        }
+
         function playClick() { clickSound.play().catch(()=>{}); }
+
+        function switchDeviceMode(mode) {
+            playClick();
+            savedLayoutData[currentMode] = grid.engine.nodes.map(n => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h }));
+            currentMode = mode;
+            
+            const gsContainer = document.querySelector('.grid-stack');
+            if (mode === 'mobile') {
+                grid.column(1, 'none');
+                gsContainer.style.maxWidth = '400px';
+                gsContainer.style.margin = '0 auto';
+            } else {
+                grid.column(12, 'none');
+                gsContainer.style.maxWidth = '100%';
+                gsContainer.style.margin = '';
+            }
+            
+            if (savedLayoutData[mode] && savedLayoutData[mode].length > 0) {
+                grid.load(savedLayoutData[mode], false);
+            } else {
+                grid.engine.nodes.forEach(n => grid.update(n.el, {x: null, y: null, w: mode === 'mobile' ? 1 : parseInt(n.el.getAttribute('gs-w') || 2)}));
+            }
+
+            document.querySelectorAll('.btn-device').forEach(btn => { btn.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50'); btn.classList.add('hover:bg-slate-100'); });
+            document.getElementById('btn-' + mode).classList.remove('hover:bg-slate-100');
+            document.getElementById('btn-' + mode).classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50');
+        }
 
         function enableEditMode() {
             playClick();
-            tempLayout = grid.engine.nodes.map(n => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h })); 
+            tempLayout = JSON.parse(JSON.stringify(savedLayoutData)); 
             grid.setStatic(false); 
             document.getElementById('btn-edit-mode').classList.add('hidden');
             const btnLogout = document.getElementById('btn-logout');
@@ -271,6 +360,10 @@
             document.getElementById('edit-controls').classList.add('flex');
             document.getElementById('edit-controls').classList.remove('hidden');
             document.getElementById('edit-banner').classList.remove('hidden');
+            if (window.innerWidth >= 768) {
+                document.getElementById('device-toggle').classList.remove('hidden');
+                document.getElementById('device-toggle').classList.add('flex');
+            }
             document.querySelectorAll('.grid-stack-item-content').forEach(el => {
                 el.classList.add('ring-2', 'ring-indigo-400', 'ring-dashed');
                 // Vô hiệu hóa thẻ <a> để chống xung đột kéo thả của trình duyệt
@@ -285,8 +378,8 @@
         function cancelEdit() {
             playClick();
             if (tempLayout) {
-                // Dùng hàm grid.load để phục hồi chuẩn xác
-                grid.load(tempLayout, false);
+                savedLayoutData = tempLayout;
+                grid.load(savedLayoutData[currentMode], false);
             }
             disableEditMode();
         }
@@ -296,9 +389,20 @@
             document.getElementById('btn-edit-mode').classList.remove('hidden');
             const btnLogout = document.getElementById('btn-logout');
             if (btnLogout) btnLogout.classList.remove('hidden'); 
+            document.getElementById('device-toggle').classList.add('hidden');
+            document.getElementById('device-toggle').classList.remove('flex');
             document.getElementById('edit-controls').classList.remove('flex');
             document.getElementById('edit-controls').classList.add('hidden');
             document.getElementById('edit-banner').classList.add('hidden');
+
+            currentMode = window.innerWidth >= 768 ? 'desktop' : 'mobile';
+            document.querySelector('.grid-stack').style.maxWidth = '100%';
+            document.querySelector('.grid-stack').style.margin = '';
+            grid.column(currentMode === 'mobile' ? 1 : 12, 'none');
+            if (savedLayoutData[currentMode] && savedLayoutData[currentMode].length > 0) {
+                grid.load(savedLayoutData[currentMode], false);
+            }
+
             document.querySelectorAll('.grid-stack-item-content').forEach(el => {
                 el.classList.remove('ring-2', 'ring-indigo-400', 'ring-dashed');
                 // Mở lại khả năng tương tác
@@ -313,23 +417,21 @@
         async function saveDashboardLayout() {
             playClick();
             
-            // Cấu hình an toàn: Chặn lưu layout khi đang dùng điện thoại
-            if (window.innerWidth < 768) {
-                alert('🛑 Vui lòng sử dụng máy tính (màn hình lớn) để thiết lập và lưu bố cục giao diện!');
-                disableEditMode();
-                return;
-            }
+            savedLayoutData[currentMode] = grid.engine.nodes.map(n => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h })); 
+            localStorage.setItem('fta_layout_staff_' + '<%= typeof req !== "undefined" && req.session ? req.session.userId : "" %>', JSON.stringify(savedLayoutData));
 
-            const currentLayout = grid.engine.nodes.map(n => ({ id: n.id, x: n.x, y: n.y, w: n.w, h: n.h })); 
             try {
                 const response = await fetch('/staff/dashboard/save-layout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ layout: currentLayout })
+                    body: JSON.stringify({ 
+                        desktop_layout: savedLayoutData.desktop,
+                        mobile_layout: savedLayoutData.mobile
+                    })
                 }); 
                 if ((await response.json()).success) {
                     disableEditMode();
-                    alert('✅ Đã lưu bố cục thành công!'); 
+                    alert('✅ Đã lưu cấu hình Dashboard thành công cho cả 2 màn hình!'); 
                 }
             } catch (error) { alert('🛑 Lỗi kết nối.'); }
         }
@@ -349,6 +451,12 @@
             } catch (error) { alert('🛑 Lỗi khôi phục.'); }
         }
 
+        // Khắc phục lỗi đảo lộn thứ tự GridStack trên Mobile khi dùng nút Back của trình duyệt
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
         
     </script>
 </body>

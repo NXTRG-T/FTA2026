@@ -178,7 +178,7 @@
                         <div class="flex flex-col md:flex-row items-center gap-4 justify-between pt-2">
                             <div class="w-full md:w-auto relative group">
                                 <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-rose-500"><i class="bi bi-alarm-fill"></i></div>
-                                <input type="datetime-local" name="reminder_time" class="w-full md:w-auto pl-10 pr-4 py-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700 text-xs font-black focus:outline-none focus:ring-4 focus:ring-rose-100 transition-all cursor-pointer">
+                                <input type="datetime-local" name="reminder_time" step="1" class="w-full md:w-auto pl-10 pr-4 py-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700 text-xs font-black focus:outline-none focus:ring-4 focus:ring-rose-100 transition-all cursor-pointer">
                                 <div class="absolute -top-2 left-4 bg-white px-2 text-[8px] font-black uppercase tracking-[0.2em] text-rose-400">Hẹn nhắc lại</div>
                             </div>
 
@@ -256,7 +256,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Ngày xác nhận *</label>
-                    <input type="datetime-local" name="active_date" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
+                    <input type="datetime-local" name="active_date" required step="1" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:border-emerald-400 outline-none transition-all font-bold text-slate-800 text-sm">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 pl-2">Ghi chú chiến dịch</label>
@@ -337,7 +337,7 @@
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const dateInput = document.querySelector('input[name="active_date"]');
-            if (dateInput) dateInput.value = now.toISOString().slice(0, 16);
+            if (dateInput) dateInput.value = now.toISOString().slice(0, 19);
         });
 
         // Hàm Mở/Đóng Modal

@@ -8,6 +8,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "axios": "^1.13.6",
     "dotenv": "^17.3.1",
     "ejs": "^5.0.1",
     "express": "^5.2.1",
@@ -24,7 +25,7 @@
     "nodemon": "^3.1.14",
     "tailwindcss": "^4.2.2"
   },
-"scripts": {
+  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "server:watch": "nodemon server.js",

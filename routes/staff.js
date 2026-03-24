@@ -8,7 +8,10 @@ const path = require('path');
 const fs = require('fs');
 const xlsx = require('xlsx'); // Thêm dòng này ở đầu file, cạnh các thư viện khác
 const customerController = require('../controllers/customerController');
+const recruitmentController = require('../controllers/recruitmentController');
+const kpiController = require('../controllers/kpiController');
 const { processKpiPoints } = require('../views/services/kpiService');
+
 
 // Cấu hình Multer cho Staff (Giới hạn 2MB để chống up file quá nặng)
 const upload = multer({ 
@@ -40,12 +43,23 @@ router.get('/', isStaff, async (req, res) => {
     `, [req.session.userId]);
     
     // Lấy thông tin họ tên từ bảng Users
-    const [users] = await db.execute('SELECT full_name, avatar_url, dashboard_layout FROM Users WHERE id = ?', [req.session.userId]);
+    const [users] = await db.execute('SELECT full_name, avatar_url, dashboard_layout, mobile_layout FROM Users WHERE id = ?', [req.session.userId]);
     const full_name = users.length > 0 ? users[0].full_name : req.session.username;
     const avatar_url = users.length > 0 ? users[0].avatar_url : null;
     const dashboard_layout = users.length > 0 && users[0].dashboard_layout ? users[0].dashboard_layout : '[]';
+    const mobile_layout = users.length > 0 && users[0].mobile_layout ? users[0].mobile_layout : '[]';
+
+    // Đếm số lượng ứng viên mới (Mới ứng tuyển) mà nhân viên này phụ trách
+    let newCandidatesCount = 0;
+    const [candidates] = await db.execute(
+        `SELECT COUNT(*) as count FROM Users WHERE work_status = 'APPLIED' AND (recruiter_id = ? OR leader_id = ?)`,
+        [req.session.userId, req.session.userId]
+    );
+    if (candidates.length > 0) {
+        newCandidatesCount = candidates[0].count;
+    }
     
-    res.render('staff/menu', { full_name, avatar_url, unreadCount: unread[0].c, dashboard_layout });
+    res.render('staff/menu', { full_name, avatar_url, unreadCount: unread[0].c, dashboard_layout, mobile_layout, newCandidatesCount });
 });
 
 // 2. Tab Thông tin cá nhân
@@ -359,9 +373,31 @@ router.post('/customers/restore/:id', isStaff, async (req, res) => {
 // 11. Tab danh sách sự kiện dành cho nhân viên [cite: 9]
 router.get('/events', isStaff, async (req, res) => {
     try {
-        // Lấy danh sách sự kiện sắp tới hoặc đang diễn ra [cite: 10]
-        const [events] = await db.execute('SELECT * FROM Events ORDER BY start_time ASC');
-        res.render('staff/events', { events });
+        const { status, start_date, end_date } = req.query;
+        let sql = 'SELECT * FROM Events WHERE 1=1';
+        const params = [];
+
+        if (status === 'upcoming') {
+            sql += ' AND start_time > NOW()';
+        } else if (status === 'ongoing') {
+            sql += ' AND start_time <= NOW() AND end_time >= NOW()';
+        } else if (status === 'completed') {
+            sql += ' AND end_time < NOW()';
+        }
+
+        if (start_date) {
+            sql += ' AND start_time >= ?';
+            params.push(`${start_date} 00:00:00`);
+        }
+        if (end_date) {
+            sql += ' AND start_time <= ?';
+            params.push(`${end_date} 23:59:59`);
+        }
+
+        sql += ' ORDER BY start_time DESC';
+
+        const [events] = await db.execute(sql, params);
+        res.render('staff/events', { events, query: req.query });
     } catch (err) {
         res.status(500).send('Lỗi tải danh sách sự kiện');
     }
@@ -488,7 +524,7 @@ router.post('/customers/edit/:id', isStaff, async (req, res) => {
 // ==========================================
 router.get('/documents', isStaff, async (req, res) => {
     try {
-        const [documents] = await db.execute('SELECT * FROM Documents ORDER BY created_at DESC');
+        const [documents] = await db.execute('SELECT * FROM Documents WHERE COALESCE(is_visible, 1) = 1 ORDER BY created_at DESC');
         res.render('staff/documents', { documents });
     } catch (err) {
         console.error(err);
@@ -711,8 +747,33 @@ router.post('/customers/:id/interaction', isStaff, async (req, res) => {
 // ==========================================
 router.post('/dashboard/save-layout', isStaff, async (req, res) => {
     try {
-        const layoutData = JSON.stringify(req.body.layout);
-        await db.execute('UPDATE Users SET dashboard_layout = ? WHERE id = ?', [layoutData, req.session.userId]);
+        if (req.app.locals.allow_staff_edit_layout === '0') {
+            return res.status(403).json({ success: false, message: 'Tính năng tùy biến giao diện đã bị Admin tắt.' });
+        }
+
+        const myId = req.session.userId;
+        const desktopData = req.body.desktop_layout || req.body.layout;
+        const mobileData = req.body.mobile_layout;
+
+        let sql = 'UPDATE Users SET ';
+        let params = [];
+        let updateCols = [];
+
+        if (desktopData) {
+            updateCols.push('dashboard_layout = ?');
+            params.push(JSON.stringify(desktopData));
+        }
+        if (mobileData) {
+            updateCols.push('mobile_layout = ?');
+            params.push(JSON.stringify(mobileData));
+        }
+
+        if (updateCols.length > 0) {
+            sql += updateCols.join(', ') + ' WHERE id = ?';
+            params.push(myId);
+            await db.execute(sql, params);
+        }
+
         res.json({ success: true });
     } catch (err) {
         console.error(err);
@@ -723,15 +784,39 @@ router.post('/dashboard/save-layout', isStaff, async (req, res) => {
 // API Xóa cấu hình Dashboard của Staff
 router.post('/dashboard/reset-layout', isStaff, async (req, res) => {
     try {
+        if (req.app.locals.allow_staff_edit_layout === '0') {
+            return res.status(403).json({ success: false, message: 'Tính năng tùy biến giao diện đã bị Admin tắt.' });
+        }
         const userId = req.session.userId;
-        // Đặt layout về NULL hoặc chuỗi rỗng
-        await db.execute('UPDATE Users SET dashboard_layout = NULL WHERE id = ?', [userId]);
+        // Xóa sạch cả 2 cấu hình
+        await db.execute('UPDATE Users SET dashboard_layout = NULL, mobile_layout = NULL WHERE id = ?', [userId]);
         res.json({ success: true, message: 'Đã khôi phục giao diện' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 });
+
+// ==========================================
+// QUẢN LÝ TUYỂN DỤNG (KANBAN STAFF/LEADER)
+// ==========================================
+
+// Middleware kiểm tra quyền tuyển dụng
+const canRecruit = async (req, res, next) => {
+    try {
+        const [users] = await db.execute('SELECT can_recruit FROM Users WHERE id = ?', [req.session.userId]);
+        if (users.length === 0 || users[0].can_recruit !== 1) {
+            return res.send('<script>alert("🛑 Tính năng Tuyển dụng chưa được cấp quyền cho tài khoản của bạn. Vui lòng liên hệ Admin!"); window.history.back();</script>');
+        }
+        next();
+    } catch (err) {
+        console.error('Lỗi kiểm tra quyền tuyển dụng:', err);
+        res.status(500).send('Lỗi kiểm tra quyền');
+    }
+};
+
+router.get('/recruitment', isStaff, canRecruit, recruitmentController.getKanbanBoard);
+router.get('/api/recruitment/load-more', isStaff, canRecruit, recruitmentController.loadMoreCards);
 
 // ==========================================
 // CHI TIẾT KHÁCH HÀNG & NHẬT KÝ CHĂM SÓC
@@ -808,5 +893,13 @@ router.post('/customers/:id/active', isStaff, (req, res, next) => {
     req.user = { username: req.session.username || 'Staff' }; // Polyfill tránh lỗi undefined trong controller
     next();
 }, customerController.addActiveCustomer);
+
+
+router.get('/api/kpi/history', isStaff, kpiController.getKpiHistoryAPI);
+router.get('/api/team-members', isStaff, recruitmentController.getTeamMembersAPI);
+// ==============================================================================
+// Chức năng: Tạo đường dẫn truy cập trang Giám sát đội nhóm
+// ==============================================================================
+router.get('/team-monitor', isStaff, recruitmentController.getIndexTeamMonitor);
 
 module.exports = router;

@@ -57,6 +57,10 @@
                         <i class="bi bi-clock-fill text-cyan-600"></i> <%= formatDateTime(doc.updated_at) %>
                     </p>
                     
+                    <% if(doc.document_type) { %>
+                        <span class="inline-block bg-cyan-50 text-cyan-700 text-xs font-bold px-2.5 py-1 rounded-md mb-3 w-max"><i class="bi bi-tag-fill"></i> <%= doc.document_type %></span>
+                    <% } %>
+
                     <% if(doc.description) { %>
                         <div class="bg-slate-50 p-3.5 rounded-xl text-sm text-slate-700 font-medium mb-4 border border-slate-200 whitespace-pre-line leading-relaxed">
                             <%= doc.description %>

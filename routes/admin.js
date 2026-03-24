@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const customerController = require('../controllers/customerController');
 const kpiController = require('../controllers/kpiController');
+const recruitmentController = require('../controllers/recruitmentController');
 
 // Cấu hình Multer lưu tạm vào bộ nhớ đệm (RAM) trước khi nén
 const upload = multer({
@@ -50,6 +51,9 @@ router.get('/dashboard', isAdmin, async (req, res) => {
         const [[{ total_customers }]] = await db.execute('SELECT COUNT(*) as total_customers FROM Customers WHERE is_deleted = 0');
         const [[{ total_staff }]] = await db.execute('SELECT COUNT(*) as total_staff FROM Users WHERE role = "Staff" AND is_deleted = 0');
 
+        // Đếm số lượng ứng viên mới (Mới ứng tuyển)
+        const [[{ newCandidatesCount }]] = await db.execute('SELECT COUNT(*) as newCandidatesCount FROM Users WHERE work_status = "APPLIED"');
+
         // Lấy sự kiện sắp diễn ra (5 sự kiện gần nhất tính từ hiện tại)
         const [upcoming_events] = await db.execute(
             'SELECT id, event_name, start_time, location FROM Events WHERE start_time >= NOW() ORDER BY start_time ASC LIMIT 5'
@@ -70,16 +74,18 @@ router.get('/dashboard', isAdmin, async (req, res) => {
         `);
 
         // Lấy thông tin họ tên từ bảng Users
-        const [users] = await db.execute('SELECT full_name, dashboard_layout FROM Users WHERE id = ?', [req.session.userId]);
+        const [users] = await db.execute('SELECT full_name, dashboard_layout, mobile_layout FROM Users WHERE id = ?', [req.session.userId]);
         const full_name = users.length > 0 ? users[0].full_name : req.session.username;
 
         res.render('admin/dashboard', {
             full_name,
             total_customers,
             total_staff,
+            newCandidatesCount,
             upcoming_events,
             customers_birthday: upcoming_birthdays,
-            dashboard_layout: users.length > 0 && users[0].dashboard_layout ? users[0].dashboard_layout : '[]'
+            dashboard_layout: users.length > 0 && users[0].dashboard_layout ? users[0].dashboard_layout : '[]',
+            mobile_layout: users.length > 0 && users[0].mobile_layout ? users[0].mobile_layout : '[]'
         });
     } catch (err) {
         console.error(err);
@@ -196,9 +202,9 @@ router.get('/staff-management', isAdmin, async (req, res) => {
     try {
         // CẬP NHẬT: Thêm cột `gender` vào câu lệnh SELECT
         const [staffs] = await db.execute(
-            `SELECT id, username, full_name, role, gender, is_locked, lock_message, 
-                    birthday, cccd, phone_1, phone_2, business_code, 
-                    email, address, work_area, start_date, end_date, avatar_url, leader_id 
+            `SELECT id, username, full_name, role, gender, is_locked, lock_message, can_recruit,
+                    birthday, cccd, phone_1, phone_2, business_code, email, address, 
+                    work_area, start_date, end_date, avatar_url, leader_id, probation_start_date, probation_end_date
              FROM Users 
              WHERE role = "Staff" AND is_deleted = 0`
         );
@@ -232,7 +238,7 @@ router.post('/staff/add', isAdmin, async (req, res) => {
     const {
         full_name, username, password, gender, birthday, cccd,
         phone_1, phone_2, email, business_code, work_area,
-        address, start_date, end_date, leader_id
+        address, start_date, end_date, leader_id, probation_start_date, probation_end_date, can_recruit
     } = req.body;
 
     try {
@@ -245,8 +251,8 @@ router.post('/staff/add', isAdmin, async (req, res) => {
             INSERT INTO Users (
                 full_name, username, password, role, gender, birthday, cccd, 
                 phone_1, phone_2, email, business_code, work_area, 
-                address, start_date, end_date, leader_id
-            ) VALUES (?, ?, ?, 'Staff', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                address, start_date, end_date, leader_id, probation_start_date, probation_end_date, can_recruit
+            ) VALUES (?, ?, ?, 'Staff', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             full_name.trim().toUpperCase(), // ĐÃ SỬA: Ép in hoa và xóa khoảng trắng thừa
             username.trim().toLowerCase(),
@@ -262,7 +268,10 @@ router.post('/staff/add', isAdmin, async (req, res) => {
             address || null,
             start_date || null,
             end_date || null,
-            leader_id || null
+            leader_id || null,
+            probation_start_date || null,
+            probation_end_date || null,
+            can_recruit === '1' ? 1 : 0
         ]);
 
         // ĐÃ SỬA LỖI CRASH: Sử dụng hàm logAction đồng bộ với Action_Logs
@@ -280,7 +289,7 @@ router.post('/staff/edit/:id', isAdmin, async (req, res) => {
     const {
         full_name, password, gender, birthday, cccd,
         phone_1, phone_2, business_code, email, work_area,
-        address, start_date, end_date, leader_id
+        address, start_date, end_date, leader_id, probation_start_date, probation_end_date, can_recruit
     } = req.body;
     const staffId = req.params.id;
 
@@ -315,7 +324,7 @@ router.post('/staff/edit/:id', isAdmin, async (req, res) => {
             UPDATE Users SET 
             full_name = ?, gender = ?, birthday = ?, cccd = ?, phone_1 = ?, phone_2 = ?, 
             business_code = ?, email = ?, work_area = ?, address = ?, 
-            start_date = ?, end_date = ?, leader_id = ?
+            start_date = ?, end_date = ?, leader_id = ?, probation_start_date = ?, probation_end_date = ?, can_recruit = ?
         `;
         let params = [
             full_name.trim().toUpperCase(), // ĐÃ SỬA: Ép in hoa và xóa khoảng trắng thừa
@@ -330,7 +339,10 @@ router.post('/staff/edit/:id', isAdmin, async (req, res) => {
             address || null,
             start_date || null,
             end_date || null,
-            leader_id || null
+            leader_id || null,
+            probation_start_date || null,
+            probation_end_date || null,
+            can_recruit === '1' ? 1 : 0
         ];
 
         // Nếu admin có nhập mật khẩu mới thì cập nhật luôn
@@ -662,6 +674,15 @@ router.post('/customers/edit/:id', isAdmin, async (req, res) => {
 });
 
 // ==========================================
+// QUẢN LÝ TUYỂN DỤNG (KANBAN ADMIN)
+// ==========================================
+
+router.get('/recruitment', isAdmin, recruitmentController.getKanbanBoard);
+router.post('/api/recruitment/update-status', isAdmin, recruitmentController.updateCandidateStatus);
+router.post('/api/recruitment/approve', isAdmin, recruitmentController.approveCandidate);
+router.get('/api/recruitment/load-more', isAdmin, recruitmentController.loadMoreCards);
+
+// ==========================================
 // QUẢN LÝ SỰ KIỆN (EVENTS)
 // ==========================================
 
@@ -915,11 +936,11 @@ router.get('/documents', isAdmin, async (req, res) => {
 
 // 2. Thêm tài liệu mới
 router.post('/documents/add', isAdmin, async (req, res) => {
-    const { title, description, file_link } = req.body;
+    const { title, description, file_link, document_type } = req.body;
     try {
         await db.execute(
-            'INSERT INTO Documents (title, description, file_link) VALUES (?, ?, ?)',
-            [title, description || null, file_link]
+            'INSERT INTO Documents (title, description, file_link, document_type, is_visible) VALUES (?, ?, ?, ?, 1)',
+            [title, description || null, file_link, document_type || null]
         );
         await logAction(req.session.userId, null, 'ADD_DOCUMENT', `Thêm tài liệu mới: ${title}`);
         res.redirect('/admin/documents');
@@ -931,17 +952,29 @@ router.post('/documents/add', isAdmin, async (req, res) => {
 
 // 3. Sửa thông tin tài liệu
 router.post('/documents/edit/:id', isAdmin, async (req, res) => {
-    const { title, description, file_link } = req.body;
+    const { title, description, file_link, document_type } = req.body;
     try {
         await db.execute(
-            'UPDATE Documents SET title = ?, description = ?, file_link = ? WHERE id = ?',
-            [title, description || null, file_link, req.params.id]
+            'UPDATE Documents SET title = ?, description = ?, file_link = ?, document_type = ? WHERE id = ?',
+            [title, description || null, file_link, document_type || null, req.params.id]
         );
         await logAction(req.session.userId, null, 'EDIT_DOCUMENT', `Sửa tài liệu ID: ${req.params.id}`);
         res.redirect('/admin/documents');
     } catch (err) {
         console.error(err);
         res.status(500).send('Lỗi sửa tài liệu');
+    }
+});
+
+// 5. Bật/Tắt hiển thị tài liệu
+router.post('/documents/toggle/:id', isAdmin, async (req, res) => {
+    try {
+        // Đảo ngược trạng thái is_visible (nếu đang null thì coi như là 1 -> ẩn thành 0)
+        await db.execute('UPDATE Documents SET is_visible = IF(COALESCE(is_visible, 1) = 1, 0, 1) WHERE id = ?', [req.params.id]);
+        res.redirect('/admin/documents');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Lỗi cập nhật trạng thái tài liệu');
     }
 });
 
@@ -963,13 +996,36 @@ router.post('/documents/delete/:id', isAdmin, async (req, res) => {
 // 1. Xem danh sách thông báo
 router.get('/notifications', isAdmin, async (req, res) => {
     try {
-        const [notifications] = await db.execute(`
+        const { status, start_date, end_date } = req.query;
+        let sql = `
             SELECT n.*, u.full_name as creator_name
             FROM Notifications n
             LEFT JOIN Users u ON n.created_by = u.id
-            ORDER BY n.created_at DESC
-        `);
-        res.render('admin/notifications', { notifications, now: new Date() });
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (status === 'upcoming') {
+            sql += ' AND n.start_time > NOW()';
+        } else if (status === 'ongoing') {
+            sql += ' AND n.start_time <= NOW() AND n.end_time >= NOW()';
+        } else if (status === 'completed') {
+            sql += ' AND n.end_time < NOW()';
+        }
+
+        if (start_date) {
+            sql += ' AND n.start_time >= ?';
+            params.push(`${start_date} 00:00:00`);
+        }
+        if (end_date) {
+            sql += ' AND n.start_time <= ?';
+            params.push(`${end_date} 23:59:59`);
+        }
+
+        sql += ' ORDER BY n.created_at DESC';
+
+        const [notifications] = await db.execute(sql, params);
+        res.render('admin/notifications', { notifications, now: new Date(), query: req.query });
     } catch (err) {
         console.error(err);
         res.status(500).send('Lỗi tải danh sách thông báo');
@@ -1216,6 +1272,23 @@ router.post('/staff/update-avatar/:id', isAdmin, (req, res) => {
         }
     });
 });
+// 4. Cập nhật quyền cho phép nhân viên sửa giao diện
+router.post('/settings/toggle-staff-layout', isAdmin, async (req, res) => {
+    try {
+        const val = req.body.allow_staff_edit_layout === '1' ? '1' : '0';
+        
+        // Cập nhật Database
+        await db.execute('UPDATE System_Configs SET config_value = ? WHERE config_key = "allow_staff_edit_layout"', [val]);
+
+        // Cập nhật lên biến toàn cục RAM (để các file EJS nhận diện ngay lập tức)
+        req.app.locals.allow_staff_edit_layout = val;
+        await logAction(req.session.userId, null, 'UPDATE_SETTINGS', `Cập nhật quyền Staff - Sửa UI: ${val}`);
+        res.redirect('/admin/settings');
+    } catch (error) {
+        console.error(error);
+        res.send('<script>alert("🛑 Lỗi cập nhật cấu hình!"); window.history.back();</script>');
+    }
+});
 
 // ==========================================
 // API DỮ LIỆU BIỂU ĐỒ (DASHBOARD ANALYTICS)
@@ -1299,6 +1372,9 @@ router.post('/kpi-settings/edit/:id', isAdmin, kpiController.updateProgram);
 // 4. Đồng bộ / Tính lại điểm KPI
 router.post('/kpi-settings/:id/recalculate', isAdmin, kpiController.recalculateKpi);
 
+// 5. Xóa cấu hình KPI
+router.post('/kpi-settings/delete/:id', isAdmin, kpiController.deleteProgram);
+
 // 3. Mở Bảng xếp hạng vinh danh
 router.get('/leaderboard', isAdmin, async (req, res) => {
     try {
@@ -1322,11 +1398,31 @@ router.get('/leaderboard', isAdmin, async (req, res) => {
 // ==========================================
 router.post('/dashboard/save-layout', isAdmin, async (req, res) => {
     try {
-        const layoutData = JSON.stringify(req.body.layout);
         const myId = req.session.userId;
 
-        // Lưu chuỗi tọa độ JSON vào hồ sơ của Admin này
-        await db.execute('UPDATE Users SET dashboard_layout = ? WHERE id = ?', [layoutData, myId]);
+        // Lấy dữ liệu layout được gửi lên (Hỗ trợ biến 'desktop_layout' hoặc 'layout' cũ)
+        const desktopData = req.body.desktop_layout || req.body.layout;
+        const mobileData = req.body.mobile_layout;
+
+        let sql = 'UPDATE Users SET ';
+        let params = [];
+        let updateCols = [];
+
+        // Chỉ cập nhật những trường có dữ liệu gửi lên
+        if (desktopData) {
+            updateCols.push('dashboard_layout = ?');
+            params.push(JSON.stringify(desktopData));
+        }
+        if (mobileData) {
+            updateCols.push('mobile_layout = ?');
+            params.push(JSON.stringify(mobileData));
+        }
+
+        if (updateCols.length > 0) {
+            sql += updateCols.join(', ') + ' WHERE id = ?';
+            params.push(myId);
+            await db.execute(sql, params);
+        }
 
         res.json({ success: true, message: 'Đã lưu giao diện!' });
     } catch (err) {
@@ -1339,14 +1435,15 @@ router.post('/dashboard/save-layout', isAdmin, async (req, res) => {
 router.post('/dashboard/reset-layout', isAdmin, async (req, res) => {
     try {
         const userId = req.session.userId; 
-        // Đặt layout về NULL hoặc chuỗi rỗng
-        await db.execute('UPDATE Users SET dashboard_layout = NULL WHERE id = ?', [userId]);
+        // Xóa sạch cả 2 layout về NULL
+        await db.execute('UPDATE Users SET dashboard_layout = NULL, mobile_layout = NULL WHERE id = ?', [userId]);
         res.json({ success: true, message: 'Đã khôi phục giao diện' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: 'Lỗi máy chủ' });
     }
 });
+
 
 // ==========================================
 // // Xử lý cập nhật thông tin Tag
@@ -1395,5 +1492,11 @@ router.post('/customers/:id/active', isAdmin, (req, res, next) => {
     req.user = { username: req.session.username || 'Admin' }; // Gắn tên Admin thực hiện
     next();
 }, customerController.addActiveCustomer);
+
+router.get('/api/kpi/history', isAdmin, kpiController.getKpiHistoryAPI);
+
+// [ROUTER BÁO CÁO KPI DÀNH CHO ADMIN]
+router.get('/kpi-report', isAdmin, kpiController.renderKpiReportPage);
+router.get('/api/kpi/all-logs', isAdmin, kpiController.getAdminKpiLogsAPI);
 
 module.exports = router;

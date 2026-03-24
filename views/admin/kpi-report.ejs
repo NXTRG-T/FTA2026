@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Điểm KPI Hệ Thống</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="bg-slate-50 font-sans text-slate-800 pb-20">
+
+    <div class="max-w-7xl mx-auto p-4 md:p-6 md:pt-8">
+
+        <div class="mb-4">
+            <a href="/admin/dashboard" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-full font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
+                <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Về Dashboard
+            </a>
+        </div>
+
+        <div class="mb-8 flex items-center gap-4">
+            <div class="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 shrink-0">
+                <i class="bi bi-journal-check text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">Báo Cáo Lịch Sử KPI</h1>
+                <p class="text-sm text-slate-500 font-medium">Kiểm soát dòng chảy điểm thưởng/phạt của toàn bộ hệ thống</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col lg:flex-row gap-4 items-end">
+            <div class="w-full lg:w-1/3">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tìm nhân sự</label>
+                <div class="relative">
+                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" id="searchIcon"></i>
+                    <i class="bi bi-arrow-repeat animate-spin absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500 hidden" id="loadingIcon"></i>
+                    <input type="text" id="searchInput" oninput="handleSearchInput(event)" placeholder="Nhập tên hoặc SĐT..." class="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 outline-none transition-all text-sm font-medium">
+                </div>
+            </div>
+
+            <div class="w-full lg:w-1/4">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Loại hành động</label>
+                <select id="filterType" onchange="triggerFilter()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-indigo-400">
+                    <option value="ALL">Tất cả hành động</option>
+                    <option value="Mời sự kiện">Mời sự kiện</option>
+                    <option value="Có khách mới">Có khách mới</option>
+                    <option value="Tuyển dụng">Tuyển dụng thành công</option>
+                    <option value="Thu hồi điểm">Thu hồi điểm/Phạt</option>
+                </select>
+            </div>
+
+            <div class="w-full lg:w-1/6">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Từ ngày</label>
+                <input type="date" id="filterStartDate" onchange="triggerFilter()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-indigo-400">
+            </div>
+
+            <div class="w-full lg:w-1/6">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Đến ngày</label>
+                <input type="date" id="filterEndDate" onchange="triggerFilter()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-indigo-400">
+            </div>
+
+            <button onclick="triggerFilter()" class="w-full lg:w-auto shrink-0 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm">
+                Lọc
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-widest">Thời gian</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-widest">Nhân viên</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-widest">Hành động</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-black text-slate-500 uppercase tracking-widest">Lý do / Ghi chú</th>
+                            <th scope="col" class="px-6 py-4 text-right text-xs font-black text-slate-500 uppercase tracking-widest">Điểm (+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kpiTableBody" class="bg-white divide-y divide-slate-100">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div class="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                <button id="btnLoadMore" onclick="loadMore()" class="hidden text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-white border border-slate-200 px-6 py-2 rounded-xl transition-colors shadow-sm">
+                    Tải thêm lịch sử cũ hơn...
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let debounceTimer;
+        let currentOffset = 0;
+        const limit = 50;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchKpiLogs(true); // Load lần đầu khi vào trang
+        });
+
+        // 1. CHỐNG SPAM TÌM KIẾM
+        function handleSearchInput(event) {
+            document.getElementById('searchIcon').classList.add('hidden');
+            document.getElementById('loadingIcon').classList.remove('hidden');
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => { triggerFilter(); }, 500);
+        }
+
+        function triggerFilter() {
+            currentOffset = 0; // Reset trang về 0 khi đổi bộ lọc
+            fetchKpiLogs(true);
+        }
+
+        function loadMore() {
+            currentOffset += limit;
+            fetchKpiLogs(false);
+        }
+
+        // 2. GỌI API
+        async function fetchKpiLogs(isReset = false) {
+            const search = document.getElementById('searchInput').value.trim();
+            const actionType = document.getElementById('filterType').value;
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+            const tbody = document.getElementById('kpiTableBody');
+            const btnLoadMore = document.getElementById('btnLoadMore');
+
+            if (isReset) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-400"><i class="bi bi-arrow-repeat animate-spin text-2xl"></i></td></tr>`;
+
+            try {
+                // Xây dựng URL Query
+                let url = `/admin/api/kpi/all-logs?limit=${limit}&offset=${currentOffset}`;
+                if (search) url += `&search=${encodeURIComponent(search)}`;
+                if (actionType && actionType !== 'ALL') url += `&action_type=${encodeURIComponent(actionType)}`;
+                if (startDate) url += `&start_date=${startDate}`;
+                if (endDate) url += `&end_date=${endDate}`;
+
+                const response = await fetch(url);
+                const result = await response.json();
+
+                document.getElementById('searchIcon').classList.remove('hidden');
+                document.getElementById('loadingIcon').classList.add('hidden');
+
+                if (result.success) {
+                    if (isReset) tbody.innerHTML = '';
+                    
+                    if (result.logs.length === 0 && isReset) {
+                        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-400 font-bold bg-slate-50/50">Không tìm thấy dữ liệu khớp với bộ lọc.</td></tr>`;
+                        btnLoadMore.classList.add('hidden');
+                        return;
+                    }
+
+                    let html = '';
+                    result.logs.forEach(log => {
+                        const isPos = parseFloat(log.points_changed) > 0;
+                        const dateObj = new Date(log.created_at);
+                        const timeStr = dateObj.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                        const dateStr = dateObj.toLocaleDateString('vi-VN');
+
+                        html += `
+                            <div class="hover:bg-slate-50 transition-colors group">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 font-medium">
+                                    <span class="text-slate-800">${timeStr}</span><br>
+                                    <span class="text-[10px] uppercase tracking-wider">${dateStr}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-3">
+                                        <img src="${log.avatar_url || '/img/default-avatar.png'}" class="w-8 h-8 rounded-full object-cover border border-slate-200">
+                                        <div>
+                                            <div class="text-sm font-bold text-slate-800">${log.full_name}</div>
+                                            <div class="text-xs text-slate-500">${log.phone_1}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${isPos ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}">
+                                        <div class="w-1.5 h-1.5 rounded-full ${isPos ? 'bg-emerald-500' : 'bg-rose-500'}"></div>
+                                        ${log.action_type}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-slate-600 max-w-xs truncate" title="${log.reason || ''}">
+                                    ${log.reason || '-'}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <span class="text-base font-black ${isPos ? 'text-emerald-600' : 'text-rose-600'}">
+                                        ${isPos ? '+' : ''}${log.points_changed}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    tbody.insertAdjacentHTML('beforeend', html);
+
+                    // Hiển thị/Ẩn nút tải thêm
+                    if (result.logs.length === limit) {
+                        btnLoadMore.classList.remove('hidden');
+                    } else {
+                        btnLoadMore.classList.add('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+                if (isReset) tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-rose-500 font-bold">Lỗi tải dữ liệu máy chủ!</td></tr>`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tuyển Dụng (Tabs Kanban)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        body { background-color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        /* Hiệu ứng khi kéo thẻ (Thẻ đang bay lơ lửng) */
+        .ghost-card { opacity: 0.4; background-color: #f1f5f9; border: 2px dashed #cbd5e1; }
+        
+        /* Hiệu ứng khi Tab trở thành vùng thả (Drop Zone) */
+        .tab-drop-zone.sortable-drag { display: none; } /* Ẩn thẻ khi lỡ rớt trực tiếp vào giao diện tab */
+        .tab-highlight { border-color: #6366f1 !important; background-color: #e0e7ff !important; transform: scale(1.02); }
+
+        /* Animation chuyển Tab */
+        .fade-in { animation: fadeIn 0.3s ease-in-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+<div class="max-w-[1000px] mx-auto p-4 md:p-8">
+
+    <div class="mb-4">
+        <a href="<%= user.role === 'Admin' ? '/admin/dashboard' : '/staff/menu' %>" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-indigo-400 text-slate-600 hover:text-indigo-600 rounded-full font-black text-xs uppercase tracking-widest shadow-sm transition-all group">
+            <i class="bi bi-arrow-left text-base group-hover:-translate-x-1 transition-transform"></i> Trở lại trang chính
+        </a>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 mb-6 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600 tracking-tight m-0 flex items-center gap-3">
+                🎯 Quản lý Tuyển Dụng
+            </h2>
+            <p class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-2 m-0">Kéo thẻ từ danh sách thả vào các ô bên dưới</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div class="relative w-full sm:w-64">
+                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="searchKanbanInput" placeholder="Tìm tên, SĐT..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-amber-400 outline-none transition-all shadow-sm">
+            </div>
+            <button onclick="forceReload()" class="px-4 py-3 bg-white border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-300 rounded-xl font-bold transition-transform hover:scale-105 flex items-center justify-center shadow-sm shrink-0" title="Tải lại trang (Shift + F5)">
+                <i class="bi bi-arrow-clockwise text-lg"></i>
+            </button>
+            <button onclick="copyAffiliateLink()" class="px-5 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 rounded-xl font-bold text-sm uppercase tracking-widest transition-transform hover:scale-105 flex items-center gap-2 shadow-md justify-center shrink-0">
+                <i class="bi bi-link-45deg text-lg"></i> Copy Link
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6" id="tabsContainer">
+        
+        <div id="tab-APPLIED" data-status="APPLIED" onclick="switchTab('APPLIED')" class="status-tab tab-drop-zone cursor-pointer bg-white border-2 border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition-all hover:bg-slate-50 opacity-50 relative overflow-hidden">
+            <div class="text-xl mb-1 text-slate-400 tab-icon"><i class="bi bi-inbox-fill"></i></div>
+            <h3 class="font-black text-[10px] md:text-xs text-slate-600 uppercase tracking-widest tab-title">Mới ứng tuyển</h3>
+            <span class="count-badge absolute top-2 right-2 text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md"><%= boardData.APPLIED.length %></span>
+        </div>
+
+        <div id="tab-INTERVIEWING" data-status="INTERVIEWING" onclick="switchTab('INTERVIEWING')" class="status-tab tab-drop-zone cursor-pointer bg-white border-2 border-blue-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition-all hover:bg-blue-50/50 opacity-50 relative overflow-hidden">
+            <div class="text-xl mb-1 text-blue-400 tab-icon"><i class="bi bi-chat-dots-fill"></i></div>
+            <h3 class="font-black text-[10px] md:text-xs text-blue-800 uppercase tracking-widest tab-title">Phỏng vấn</h3>
+            <span class="count-badge absolute top-2 right-2 text-[9px] font-black bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md"><%= boardData.INTERVIEWING.length %></span>
+        </div>
+
+        <div id="tab-PROBATION" data-status="PROBATION" onclick="switchTab('PROBATION')" class="status-tab tab-drop-zone cursor-pointer bg-white border-2 border-amber-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition-all hover:bg-amber-50/50 opacity-50 relative overflow-hidden">
+            <div class="text-xl mb-1 text-amber-500 tab-icon"><i class="bi bi-hourglass-split"></i></div>
+            <h3 class="font-black text-[10px] md:text-xs text-amber-800 uppercase tracking-widest tab-title">Thử việc</h3>
+            <span class="count-badge absolute top-2 right-2 text-[9px] font-black bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md"><%= boardData.PROBATION.length %></span>
+        </div>
+
+        <div id="tab-OFFICIAL" data-status="OFFICIAL" onclick="switchTab('OFFICIAL')" class="status-tab tab-drop-zone cursor-pointer bg-white border-2 border-emerald-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition-all hover:bg-emerald-50/50 opacity-50 relative overflow-hidden">
+            <div class="text-xl mb-1 text-emerald-500 tab-icon"><i class="bi bi-patch-check-fill"></i></div>
+            <h3 class="font-black text-[10px] md:text-xs text-emerald-800 uppercase tracking-widest tab-title">Chính thức</h3>
+            <span class="count-badge absolute top-2 right-2 text-[9px] font-black bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md"><%= boardData.OFFICIAL.length %></span>
+        </div>
+
+        <div id="tab-REJECTED" data-status="REJECTED" onclick="switchTab('REJECTED')" class="status-tab tab-drop-zone cursor-pointer bg-white border-2 border-slate-200 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition-all hover:bg-slate-100 opacity-50 relative md:col-span-1 col-span-2 overflow-hidden">
+            <div class="text-xl mb-1 text-slate-400 tab-icon"><i class="bi bi-archive-fill"></i></div>
+            <h3 class="font-black text-[10px] md:text-xs text-slate-500 uppercase tracking-widest tab-title">Lưu trữ</h3>
+            <span class="count-badge absolute top-2 right-2 text-[9px] font-black bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md"><%= boardData.REJECTED.length %></span>
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-[2rem] p-4 md:p-6 shadow-sm border border-slate-200 min-h-[500px]">
+        
+        <div id="list-APPLIED" class="kanban-list space-y-3 hidden" data-status="APPLIED">
+            <% boardData.APPLIED.forEach(candidate => { %>
+                <div class="kanban-card bg-white p-5 rounded-2xl shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-lg hover:border-indigo-300 transition-all group relative" data-id="<%= candidate.id %>" data-hasaccount="<%= candidate.username ? 'true' : 'false' %>">
+                    <button onclick="openMoveMenu('<%= candidate.id %>', '<%= candidate.username ? 'true' : 'false' %>', 'APPLIED', this)" class="absolute top-4 right-4 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-500 text-indigo-600 hover:text-white border border-indigo-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm hover:shadow-md hover:scale-105 z-10 group/btn" title="Chuyển trạng thái">
+                        <i class="bi bi-arrow-left-right text-sm group-hover/btn:rotate-180 transition-transform duration-300"></i> Chuyển
+                    </button>
+                    <div class="flex items-center gap-3 mb-3 pr-8">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 text-slate-600 font-black flex items-center justify-center shrink-0 shadow-sm border-2 border-white ring-1 ring-slate-100"><%= candidate.full_name.charAt(0).toUpperCase() %></div>
+                        <div>
+                            <h4 class="card-name text-base font-black text-slate-800 leading-tight group-hover:text-indigo-600 transition-colors"><%= candidate.full_name %></h4>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"><%= new Date(candidate.created_at).toLocaleDateString('vi-VN') %></span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-3 mb-3 border border-slate-100">
+                        <p class="card-phone text-xs font-bold text-slate-600 mb-1.5 flex items-center gap-2"><i class="bi bi-telephone-fill text-indigo-400"></i> <%= candidate.phone_1 %></p>
+                        <% if(candidate.email) { %> <p class="text-xs font-bold text-slate-500 flex items-center gap-2 truncate"><i class="bi bi-envelope-fill text-slate-400"></i> <%= candidate.email %></p> <% } %>
+                    </div>
+                    <% if(candidate.cv_url) { %>
+                    <div class="flex justify-end"><a href="<%= candidate.cv_url %>" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-white bg-indigo-50 hover:bg-indigo-600 border border-indigo-100 px-3 py-1.5 rounded-lg transition-all shadow-sm">📄 Xem CV</a></div>
+                    <% } %>
+                </div>
+            <% }) %>
+            <% if (boardData.APPLIED.length === 50) { %> <button class="w-full py-3 mt-2 bg-slate-200/50 hover:bg-slate-200 text-slate-500 font-bold rounded-xl text-xs uppercase tracking-widest transition-colors load-more-btn" data-status="APPLIED" onclick="loadMoreKanban('APPLIED', this)">Tải thêm</button> <% } %>
+        </div>
+
+        <div id="list-INTERVIEWING" class="kanban-list space-y-3 hidden" data-status="INTERVIEWING">
+            <% boardData.INTERVIEWING.forEach(candidate => { %>
+                <div class="kanban-card bg-white p-5 rounded-2xl shadow-sm border border-blue-100 cursor-grab active:cursor-grabbing hover:shadow-lg hover:border-blue-300 transition-all group relative" data-id="<%= candidate.id %>" data-hasaccount="<%= candidate.username ? 'true' : 'false' %>">
+                    <button onclick="openMoveMenu('<%= candidate.id %>', '<%= candidate.username ? 'true' : 'false' %>', 'INTERVIEWING', this)" class="absolute top-4 right-4 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-500 text-indigo-600 hover:text-white border border-indigo-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm hover:shadow-md hover:scale-105 z-10 group/btn" title="Chuyển trạng thái">
+                        <i class="bi bi-arrow-left-right text-sm group-hover/btn:rotate-180 transition-transform duration-300"></i> Chuyển
+                    </button>
+                    <div class="flex items-center gap-3 mb-3 pr-8">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-black flex items-center justify-center shrink-0 shadow-sm border-2 border-white ring-1 ring-blue-100"><%= candidate.full_name.charAt(0).toUpperCase() %></div>
+                        <div>
+                            <h4 class="card-name text-base font-black text-slate-800 leading-tight group-hover:text-blue-600 transition-colors"><%= candidate.full_name %></h4>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"><%= new Date(candidate.created_at).toLocaleDateString('vi-VN') %></span>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50/50 rounded-xl p-3 border border-blue-50">
+                        <p class="card-phone text-xs font-bold text-slate-600 flex items-center gap-2"><i class="bi bi-telephone-fill text-blue-400"></i> <%= candidate.phone_1 %></p>
+                    </div>
+                </div>
+            <% }) %>
+            <% if (boardData.INTERVIEWING.length === 50) { %> <button class="w-full py-3 mt-2 bg-blue-100/50 hover:bg-blue-100 text-blue-500 font-bold rounded-xl text-xs uppercase tracking-widest transition-colors load-more-btn" data-status="INTERVIEWING" onclick="loadMoreKanban('INTERVIEWING', this)">Tải thêm</button> <% } %>
+        </div>
+
+        <div id="list-PROBATION" class="kanban-list space-y-3 hidden" data-status="PROBATION">
+            <% boardData.PROBATION.forEach(candidate => { %>
+                <div class="kanban-card bg-white p-5 rounded-2xl shadow-sm border border-amber-100 cursor-grab active:cursor-grabbing hover:shadow-lg hover:border-amber-400 transition-all group relative" data-id="<%= candidate.id %>" data-hasaccount="<%= candidate.username ? 'true' : 'false' %>">
+                    <button onclick="openMoveMenu('<%= candidate.id %>', '<%= candidate.username ? 'true' : 'false' %>', 'PROBATION', this)" class="absolute top-4 right-4 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-500 text-indigo-600 hover:text-white border border-indigo-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm hover:shadow-md hover:scale-105 z-10 group/btn" title="Chuyển trạng thái">
+                        <i class="bi bi-arrow-left-right text-sm group-hover/btn:rotate-180 transition-transform duration-300"></i> Chuyển
+                    </button>
+                    <div class="flex items-center gap-3 mb-3 pr-8">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white font-black flex items-center justify-center shrink-0 shadow-sm border-2 border-white ring-1 ring-amber-100"><%= candidate.full_name.charAt(0).toUpperCase() %></div>
+                        <div>
+                            <h4 class="card-name text-base font-black text-slate-800 leading-tight group-hover:text-amber-600 transition-colors"><%= candidate.full_name %></h4>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"><%= new Date(candidate.created_at).toLocaleDateString('vi-VN') %></span>
+                        </div>
+                    </div>
+                    <div class="bg-amber-50/50 rounded-xl p-3 border border-amber-50">
+                        <p class="card-phone text-xs font-bold text-slate-600 flex items-center gap-2"><i class="bi bi-telephone-fill text-amber-500"></i> <%= candidate.phone_1 %></p>
+                    </div>
+                </div>
+            <% }) %>
+            <% if (boardData.PROBATION.length === 50) { %> <button class="w-full py-3 mt-2 bg-amber-100/50 hover:bg-amber-100 text-amber-500 font-bold rounded-xl text-xs uppercase tracking-widest transition-colors load-more-btn" data-status="PROBATION" onclick="loadMoreKanban('PROBATION', this)">Tải thêm</button> <% } %>
+        </div>
+
+        <div id="list-OFFICIAL" class="kanban-list space-y-3 hidden" data-status="OFFICIAL">
+            <% boardData.OFFICIAL.forEach(candidate => { %>
+                <div class="kanban-card bg-white p-5 rounded-2xl shadow-sm border border-emerald-100 cursor-grab active:cursor-grabbing hover:shadow-lg hover:border-emerald-400 transition-all group relative" data-id="<%= candidate.id %>" data-hasaccount="<%= candidate.username ? 'true' : 'false' %>">
+                    <button onclick="openMoveMenu('<%= candidate.id %>', '<%= candidate.username ? 'true' : 'false' %>', 'OFFICIAL', this)" class="absolute top-4 right-4 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-500 text-indigo-600 hover:text-white border border-indigo-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm hover:shadow-md hover:scale-105 z-10 group/btn" title="Chuyển trạng thái">
+                        <i class="bi bi-arrow-left-right text-sm group-hover/btn:rotate-180 transition-transform duration-300"></i> Chuyển
+                    </button>
+                    <div class="flex items-center gap-3 mb-3 pr-8">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-black flex items-center justify-center shrink-0 shadow-sm border-2 border-white ring-1 ring-emerald-100"><%= candidate.full_name.charAt(0).toUpperCase() %></div>
+                        <div>
+                            <h4 class="card-name text-base font-black text-slate-800 leading-tight group-hover:text-emerald-600 transition-colors"><%= candidate.full_name %></h4>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"><%= new Date(candidate.created_at).toLocaleDateString('vi-VN') %></span>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50/50 rounded-xl p-3 border border-emerald-50">
+                        <p class="card-phone text-xs font-bold text-slate-600 flex items-center gap-2 mb-2"><i class="bi bi-telephone-fill text-emerald-500"></i> <%= candidate.phone_1 %></p>
+                        <p class="text-[10px] text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-1.5 rounded uppercase tracking-widest w-fit font-black"><i class="bi bi-shield-lock-fill"></i> Đã cấp CRM</p>
+                    </div>
+                </div>
+            <% }) %>
+            <% if (boardData.OFFICIAL.length === 50) { %> <button class="w-full py-3 mt-2 bg-emerald-100/50 hover:bg-emerald-100 text-emerald-500 font-bold rounded-xl text-xs uppercase tracking-widest transition-colors load-more-btn" data-status="OFFICIAL" onclick="loadMoreKanban('OFFICIAL', this)">Tải thêm</button> <% } %>
+        </div>
+
+        <div id="list-REJECTED" class="kanban-list space-y-3 hidden" data-status="REJECTED">
+            <% boardData.REJECTED.forEach(candidate => { %>
+                <div class="kanban-card bg-slate-50 p-5 rounded-2xl shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-slate-300 transition-all opacity-80 relative group" data-id="<%= candidate.id %>" data-hasaccount="<%= candidate.username ? 'true' : 'false' %>">
+                    <button onclick="openMoveMenu('<%= candidate.id %>', '<%= candidate.username ? 'true' : 'false' %>', 'REJECTED', this)" class="absolute top-4 right-4 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-500 text-indigo-600 hover:text-white border border-indigo-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm hover:shadow-md hover:scale-105 z-10 group/btn" title="Chuyển trạng thái">
+                        <i class="bi bi-arrow-left-right text-sm group-hover/btn:rotate-180 transition-transform duration-300"></i> Chuyển
+                    </button>
+                    <div class="flex items-center gap-3 mb-3 pr-8">
+                        <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 font-black flex items-center justify-center shrink-0 shadow-sm border-2 border-white ring-1 ring-slate-100"><%= candidate.full_name.charAt(0).toUpperCase() %></div>
+                        <div>
+                            <h4 class="card-name text-base font-black text-slate-600 leading-tight line-through decoration-slate-300"><%= candidate.full_name %></h4>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"><%= new Date(candidate.created_at).toLocaleDateString('vi-VN') %></span>
+                        </div>
+                    </div>
+                    <p class="card-phone text-xs font-bold text-slate-400 flex items-center gap-2"><i class="bi bi-telephone-fill"></i> <%= candidate.phone_1 %></p>
+                </div>
+            <% }) %>
+            <% if (boardData.REJECTED.length === 50) { %> <button class="w-full py-3 mt-2 bg-slate-200/50 hover:bg-slate-200 text-slate-500 font-bold rounded-xl text-xs uppercase tracking-widest transition-colors load-more-btn" data-status="REJECTED" onclick="loadMoreKanban('REJECTED', this)">Tải thêm</button> <% } %>
+        </div>
+
+    </div>
+
+    <div id="moveMenuModal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-6 relative animate-[fadeIn_0.2s_ease-out]">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-100">
+                <h3 class="font-black text-lg text-slate-800 m-0"><i class="bi bi-arrow-left-right text-indigo-500 mr-2"></i>Chuyển trạng thái</h3>
+                <button onclick="closeMoveMenu()" class="text-slate-400 hover:text-rose-500 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="space-y-2" id="moveMenuOptions"></div>
+        </div>
+    </div>
+
+    <div id="approveModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-6 md:p-8">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                <h3 class="font-black text-xl text-indigo-700 m-0 flex items-center gap-2"><i class="bi bi-person-plus-fill"></i> Cấp Quyền Truy Cập</h3>
+                <button onclick="document.getElementById('approveModal').classList.add('hidden')" class="text-slate-400 hover:text-rose-500 text-2xl leading-none">&times;</button>
+            </div>
+            <form id="formApproveCandidate" class="space-y-5">
+                <input type="hidden" name="candidate_id" id="modal_candidate_id">
+                <input type="hidden" name="new_status" id="modal_new_status">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tên đăng nhập (Username)</label>
+                    <input type="text" name="username" required class="w-full p-4 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 font-bold text-slate-800" placeholder="VD: nguyenvena">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Mật khẩu khởi tạo</label>
+                    <input type="text" name="password" required class="w-full p-4 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 font-bold text-slate-800" placeholder="••••••••" value="123456aA@">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Bắt đầu thử việc</label>
+                        <input type="date" name="probation_start_date" id="probation_start_date" required class="w-full p-4 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 font-bold text-slate-800 text-sm cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kết thúc thử việc</label>
+                        <input type="date" name="probation_end_date" id="probation_end_date" required class="w-full p-4 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 font-bold text-slate-800 text-sm cursor-pointer">
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full py-4 mt-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2">
+                    <i class="bi bi-check-circle-fill"></i> Xác nhận duyệt & Cấp tài khoản
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = '<%= user.role === "Admin" ? "/admin" : "/staff" %>';
+        let currentActiveTab = 'APPLIED';
+        let currentMoveCard = null; // Biến lưu vết thẻ đang được chọn chuyển đổi
+
+        // Hàm reload bỏ qua cache (giống Shift + F5)
+        function forceReload() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('_refresh', new Date().getTime());
+            window.location.href = url.toString();
+        }
+
+        // 1. Script Copy Link
+        function copyAffiliateLink() {
+            const refCode = '<%= user.referral_code || "CODE_TEST" %>'; 
+            const link = window.location.origin + '/?ref=' + refCode;
+            navigator.clipboard.writeText(link);
+            alert('Đã copy link giới thiệu: ' + link);
+        }
+
+        // 2. LOGIC TABS & GIAO DIỆN
+        function switchTab(status) {
+            currentActiveTab = status;
+            
+            // Tắt active tất cả các tabs
+            document.querySelectorAll('.status-tab').forEach(tab => {
+                tab.classList.remove('opacity-100', 'ring-2', 'ring-offset-2', 'ring-indigo-400', 'shadow-md', 'scale-105');
+                tab.classList.add('opacity-50');
+            });
+            // Bật active tab được chọn
+            const activeTab = document.getElementById('tab-' + status);
+            activeTab.classList.remove('opacity-50');
+            activeTab.classList.add('opacity-100', 'ring-2', 'ring-offset-2', 'ring-indigo-400', 'shadow-md', 'scale-105');
+
+            // Ẩn tất cả các List, hiện List tương ứng
+            document.querySelectorAll('.kanban-list').forEach(list => {
+                list.classList.add('hidden');
+                list.classList.remove('fade-in');
+            });
+            const activeList = document.getElementById('list-' + status);
+            activeList.classList.remove('hidden');
+            
+            void activeList.offsetWidth; 
+            activeList.classList.add('fade-in');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('APPLIED');
+        });
+
+        function updateTabCounts() {
+            ['APPLIED', 'INTERVIEWING', 'PROBATION', 'OFFICIAL', 'REJECTED'].forEach(status => {
+                const list = document.getElementById('list-' + status);
+                const countBadge = document.getElementById('tab-' + status).querySelector('.count-badge');
+                if (list && countBadge) {
+                    const cardCount = list.querySelectorAll('.kanban-card').length;
+                    countBadge.innerText = cardCount;
+                }
+            });
+        }
+
+        // 3. KHỞI TẠO SORTABLE JS CHUYÊN SÂU (KÉO THẢ)
+        document.querySelectorAll('.kanban-list').forEach(list => {
+            new Sortable(list, {
+                group: { name: 'kanban', pull: true, put: false },
+                animation: 150,
+                delay: 150, delayOnTouchOnly: true,
+                ghostClass: 'ghost-card'
+            });
+        });
+
+        document.querySelectorAll('.tab-drop-zone').forEach(tab => {
+            new Sortable(tab, {
+                group: { name: 'kanban', pull: false, put: true },
+                ghostClass: 'hidden',
+                onAdd: function (evt) {
+                    const itemEl = evt.item;
+                    const newStatus = tab.getAttribute('data-status');
+                    const oldStatus = currentActiveTab;
+                    const hasAccount = itemEl.getAttribute('data-hasaccount') === 'true';
+
+                    if(newStatus === oldStatus) {
+                        document.getElementById('list-' + oldStatus).appendChild(itemEl);
+                        return;
+                    }
+
+                    // LUẬT 1: Chặn lùi cấp nếu đã có tài khoản (hasAccount = true)
+                    if (hasAccount && (newStatus === 'APPLIED' || newStatus === 'INTERVIEWING')) {
+                        document.getElementById('list-' + oldStatus).appendChild(itemEl); // Trả về chỗ cũ
+                        alert('Nhân sự đã có tài khoản, không thể lùi về trạng thái Mới ứng tuyển hoặc Phỏng vấn!');
+                        return;
+                    }
+
+                    document.getElementById('list-' + newStatus).appendChild(itemEl);
+                    updateTabCounts();
+
+                    // Xử lý thực thi chuyển trạng thái
+                    executeMove(itemEl.getAttribute('data-id'), newStatus, oldStatus, hasAccount, itemEl);
+                }
+            });
+            
+            tab.addEventListener('dragenter', () => tab.classList.add('tab-highlight'));
+            tab.addEventListener('dragleave', () => tab.classList.remove('tab-highlight'));
+            tab.addEventListener('drop', () => tab.classList.remove('tab-highlight'));
+        });
+
+
+        // 4. MENU CHUYỂN TRẠNG THÁI NHANH (QUICK-ACTION MENU)
+        const moveOptions = [
+            { value: 'APPLIED', label: 'Mới ứng tuyển', icon: 'bi-inbox-fill', color: 'text-slate-500' },
+            { value: 'INTERVIEWING', label: 'Phỏng vấn', icon: 'bi-chat-dots-fill', color: 'text-blue-500' },
+            { value: 'PROBATION', label: 'Thử việc', icon: 'bi-hourglass-split', color: 'text-amber-500' },
+            { value: 'OFFICIAL', label: 'Chính thức', icon: 'bi-patch-check-fill', color: 'text-emerald-500' },
+            { value: 'REJECTED', label: 'Lưu trữ (Không đạt)', icon: 'bi-archive-fill', color: 'text-slate-400' }
+        ];
+
+        function openMoveMenu(candidateId, hasAccountStr, currentStatus, btnElement) {
+            const hasAccount = hasAccountStr === 'true';
+            currentMoveCard = btnElement.closest('.kanban-card'); // Lưu vết thẻ đang được bấm
+            
+            const container = document.getElementById('moveMenuOptions');
+            container.innerHTML = '';
+
+            moveOptions.forEach(opt => {
+                const isCurrent = opt.value === currentStatus;
+                
+                // LUẬT 1 (Menu): Chặn làm mờ (Disabled) nếu đã có tài khoản và muốn lùi cấp
+                const isBackwardLocked = hasAccount && (opt.value === 'APPLIED' || opt.value === 'INTERVIEWING');
+                const disabled = isCurrent || isBackwardLocked;
+
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-4 py-3 rounded-xl font-bold text-sm flex items-center gap-3 transition-colors ${
+                    disabled 
+                    ? 'bg-slate-50 text-slate-400 cursor-not-allowed opacity-60' 
+                    : 'bg-white hover:bg-slate-100 text-slate-700'
+                }`;
+                btn.disabled = disabled;
+                
+                if (isCurrent) {
+                    btn.innerHTML = `<i class="${opt.icon} ${opt.color} opacity-50 text-lg"></i> <span class="flex-1">${opt.label}</span> <i class="bi bi-check2 text-indigo-500 text-lg"></i>`;
+                } else {
+                    btn.innerHTML = `<i class="${opt.icon} ${opt.color} text-lg"></i> <span class="flex-1">${opt.label}</span>`;
+                }
+
+                if (!disabled) {
+                    btn.onclick = () => {
+                        closeMoveMenu();
+                        
+                        // Cập nhật DOM trực tiếp để cảm giác mượt mà
+                        document.getElementById('list-' + opt.value).appendChild(currentMoveCard);
+                        updateTabCounts();
+                        
+                        // Gọi hàm thực thi
+                        executeMove(candidateId, opt.value, currentStatus, hasAccount, currentMoveCard);
+                    };
+                }
+                container.appendChild(btn);
+            });
+
+            document.getElementById('moveMenuModal').classList.remove('hidden');
+        }
+
+        function closeMoveMenu() {
+            document.getElementById('moveMenuModal').classList.add('hidden');
+        }
+
+
+        // 5. HÀM THỰC THI CHUYỂN TRẠNG THÁI CHUNG (Dùng chung cho Kéo Thả & Menu)
+        function executeMove(candidateId, newStatus, oldStatus, hasAccount, cardElement) {
+            // LUẬT 2: Cấp quyền - Bật Modal nếu chưa có tài khoản và vào Thử việc / Chính thức
+            if ((newStatus === 'PROBATION' || newStatus === 'OFFICIAL') && !hasAccount) {
+                document.getElementById('modal_candidate_id').value = candidateId;
+                document.getElementById('modal_new_status').value = newStatus;
+                
+                const today = new Date();
+                const endDate = new Date();
+                endDate.setDate(today.getDate() + 60); 
+                document.getElementById('probation_start_date').value = today.toISOString().split('T')[0];
+                document.getElementById('probation_end_date').value = endDate.toISOString().split('T')[0];
+
+                document.getElementById('approveModal').classList.remove('hidden');
+            } else {
+                // Gọi API chuyển ngầm
+                updateCandidateStatus(candidateId, newStatus);
+            }
+        }
+
+        async function updateCandidateStatus(id, status) {
+            try {
+                await fetch(baseUrl + `/api/recruitment/update-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ candidate_id: id, status: status })
+                });
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi khi cập nhật trạng thái trên Server!');
+            }
+        }
+
+
+        // 6. BỘ LỌC TÌM KIẾM NHANH KANBAN
+        const searchInput = document.getElementById('searchKanbanInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const keyword = e.target.value.toLowerCase().trim();
+                const cards = document.querySelectorAll('.kanban-card');
+                
+                cards.forEach(card => {
+                    const name = card.querySelector('.card-name')?.innerText.toLowerCase() || '';
+                    const phone = card.querySelector('.card-phone')?.innerText.toLowerCase() || '';
+                    if (name.includes(keyword) || phone.includes(keyword)) card.style.display = 'block';
+                    else card.style.display = 'none';
+                });
+            });
+        }
+
+        // 7. SUBMIT MODAL TẠO TÀI KHOẢN
+        document.getElementById('formApproveCandidate')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'ĐANG XỬ LÝ...'; 
+            btn.disabled = true;
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(baseUrl + '/api/recruitment/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('✅ Đã duyệt và cấp quyền truy cập hệ thống thành công!');
+                    location.reload(); 
+                } else {
+                    alert('❌ Lỗi: ' + result.message);
+                }
+            } catch (err) {
+                alert('Lỗi kết nối máy chủ!');
+            } finally {
+                btn.innerHTML = originalText; 
+                btn.disabled = false;
+            }
+        });
+
+        // 8. LOGIC PHÂN TRANG (TẢI THÊM)
+        async function loadMoreKanban(status, btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> Đang tải...';
+            btn.disabled = true;
+            
+            const container = document.getElementById('list-' + status);
+            const currentOffset = container.querySelectorAll('.kanban-card').length;
+
+            try {
+                const response = await fetch(baseUrl + `/api/recruitment/load-more?status=${status}&offset=${currentOffset}`);
+                const result = await response.json();
+
+                if (result.success && result.candidates.length > 0) {
+                    result.candidates.forEach(c => {
+                        const hasAcc = c.username ? 'true' : 'false';
+                        const init = c.full_name.charAt(0).toUpperCase();
+                        const date = new Date(c.created_at).toLocaleDateString('vi-VN');
+                        
+                        const div = document.createElement('div');
+                        div.className = `kanban-card bg-white p-5 rounded-2xl shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:shadow-lg transition-all group relative`;
+                        div.setAttribute('data-id', c.id);
+                        div.setAttribute('data-hasaccount', hasAcc);
+
+                        div.innerHTML = `
+                            <button onclick="openMoveMenu('${c.id}', '${hasAcc}', '${status}', this)" class="absolute top-4 right-4 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-500 text-indigo-600 hover:text-white border border-indigo-100 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm hover:shadow-md hover:scale-105 z-10 group/btn" title="Chuyển trạng thái">
+                                <i class="bi bi-arrow-left-right text-sm group-hover/btn:rotate-180 transition-transform duration-300"></i> Chuyển
+                            </button>
+                            <div class="flex items-center gap-3 mb-3 pr-8">
+                                <div class="w-10 h-10 rounded-full bg-slate-200 text-slate-600 font-black flex items-center justify-center shrink-0 shadow-sm border-2 border-white ring-1 ring-slate-100">${init}</div>
+                                <div class="pr-6">
+                                    <h4 class="card-name text-base font-black text-slate-800 leading-tight">${c.full_name}</h4>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${date}</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                                <p class="card-phone text-xs font-bold text-slate-600 flex items-center gap-2"><i class="bi bi-telephone-fill"></i> ${c.phone_1}</p>
+                            </div>
+                        `;
+                        container.insertBefore(div, btn);
+                    });
+
+                    updateTabCounts();
+
+                    if (result.candidates.length < 50) btn.remove();
+                    else { btn.innerHTML = originalText; btn.disabled = false; }
+                } else btn.remove();
+            } catch (err) {
+                btn.innerHTML = 'Lỗi, thử lại'; btn.disabled = false;
+            }
+        }
+
+        // Bổ sung thêm biến để chặn click nhấp nháy
+function switchTab(status) {
+    // 1. Chặn luôn nếu click lại vào chính Tab đang mở
+    if (currentActiveTab === status && !document.getElementById('list-' + status).classList.contains('hidden')) {
+        return; 
+    }
+    
+    currentActiveTab = status;
+    
+    // 2. Tắt active tất cả các tabs
+    document.querySelectorAll('.status-tab').forEach(tab => {
+        tab.classList.remove('opacity-100', 'ring-2', 'ring-offset-2', 'ring-indigo-400', 'shadow-md', 'scale-105');
+        tab.classList.add('opacity-50');
+    });
+
+    // 3. Bật active tab được chọn
+    const activeTab = document.getElementById('tab-' + status);
+    if (activeTab) {
+        activeTab.classList.remove('opacity-50');
+        activeTab.classList.add('opacity-100', 'ring-2', 'ring-offset-2', 'ring-indigo-400', 'shadow-md', 'scale-105');
+    }
+
+    // 4. Ẩn tất cả các List NGAY LẬP TỨC và gỡ class animation cũ
+    document.querySelectorAll('.kanban-list').forEach(list => {
+        list.classList.add('hidden');
+        list.classList.remove('fade-in'); 
+    });
+
+    // 5. Hiện List mới một cách mượt mà bằng requestAnimationFrame
+    const activeList = document.getElementById('list-' + status);
+    if (activeList) {
+        activeList.classList.remove('hidden');
+        
+        // requestAnimationFrame giúp đồng bộ với nhịp vẽ của trình duyệt, chống giật lag
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                activeList.classList.add('fade-in');
+            });
+        });
+    }
+}
+    </script>
+</div>
+</body>
+</html>

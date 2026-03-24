@@ -9,6 +9,15 @@ const db = require('../../config/db'); // Import kết nối database của bạ
  */
 async function processKpiPoints(staff_id, action_type, reference_id, custom_point = null) {
     try {
+        // [QUAN TRỌNG] Kiểm tra điểm Tuyển dụng để đảm bảo 1 ứng viên chỉ mang lại điểm 1 lần duy nhất
+        if (action_type === 'RECRUIT_SUCCESS') {
+            const [existingLogs] = await db.query(
+                `SELECT id FROM kpi_score_logs WHERE action_type = 'RECRUIT_SUCCESS' AND reference_id = ?`,
+                [reference_id]
+            );
+            if (existingLogs.length > 0) return; // Đã từng cộng điểm rồi thì thoát ngay lập tức
+        }
+
         // 1. Tìm các chương trình KPI ĐANG HOẠT ĐỘNG (Dựa theo thời gian hiện tại)
         const [activePrograms] = await db.query(`
             SELECT * FROM kpi_programs 
@@ -40,6 +49,9 @@ async function processKpiPoints(staff_id, action_type, reference_id, custom_poin
             else if (action_type === 'EVENT_ATTEND') {
                 // Nếu sự kiện có điểm riêng thì lấy điểm riêng, không thì lấy điểm mặc định
                 pointsToAward = custom_point !== null && custom_point > 0 ? custom_point : program.point_event_default;
+            }
+            else if (action_type === 'RECRUIT_SUCCESS') {
+                pointsToAward = program.point_recruit || 0; // Tránh lỗi undefined nếu DB chưa có cột
             }
             // Thêm các action_type khác như SURVEY, STUDY, MEETING vào đây...
 
@@ -142,6 +154,27 @@ async function recalculateProgramPoints(programId) {
                     INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
                     VALUES (?, ?, 'SURVEY', ?, ?, 'Hồi tố điểm Khảo sát')
                 `, [srv.staff_id, program.id, srv.id, program.point_survey]);
+            }
+        }
+
+        // ==========================================
+        // 6. TÍNH LẠI ĐIỂM TUYỂN DỤNG (RECRUIT_SUCCESS)
+        // ==========================================
+        if (program.point_recruit > 0) {
+            const [recruits] = await db.query(`
+                SELECT id, recruiter_id 
+                FROM Users
+                WHERE role = 'Staff' 
+                  AND work_status IN ('PROBATION', 'OFFICIAL')
+                  AND created_at BETWEEN ? AND ?
+                  AND recruiter_id IS NOT NULL
+            `, [program.start_date, program.end_date]);
+
+            for (let rec of recruits) {
+                await db.query(`
+                    INSERT INTO kpi_score_logs (staff_id, kpi_program_id, action_type, reference_id, points_changed, reason)
+                    VALUES (?, ?, 'RECRUIT_SUCCESS', ?, ?, 'Hồi tố điểm Tuyển dụng thành công')
+                `, [rec.recruiter_id, program.id, rec.id, program.point_recruit]);
             }
         }
 

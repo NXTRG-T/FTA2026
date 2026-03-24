@@ -57,6 +57,13 @@ app.use('/staff', require('./routes/staff'));
 app.use('/admin', require('./routes/admin'));
 app.use('/checkin', require('./routes/checkin')); // Thêm module Check-in công khai
 
+// ==========================================
+// API NỘP ĐƠN ỨNG TUYỂN TỪ LANDING PAGE
+// ==========================================
+const multer = require('multer');
+const uploadPublic = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }); // Giới hạn 5MB
+app.post('/api/recruitment/apply', uploadPublic.single('cv_file'), require('./controllers/recruitmentController').submitApplication);
+
 // 4. Điều hướng trang chủ (Landing Page) hoặc Dashboard dựa trên Role
 app.get('/', (req, res) => {
     // Nếu người dùng đã đăng nhập rồi thì cho họ vào Dashboard luôn, đừng bắt xem Landing Page nữa

@@ -51,6 +51,12 @@
                         <label class="block text-xs font-bold text-purple-700 uppercase tracking-widest mb-2">🔑 Mật khẩu khởi tạo *</label>
                         <input type="password" name="password" required oninput="this.value = this.value.replace(/\s/g, '')" placeholder="Nhập mật khẩu..." class="w-full p-4 border border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none transition-colors font-bold text-base">
                     </div>
+                    <div class="lg:col-span-4 mt-2 border-t border-rose-100 pt-4">
+                        <label class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-xl border border-rose-200 w-fit hover:bg-rose-50 transition-colors">
+                            <input type="checkbox" name="can_recruit" value="1" class="w-5 h-5 text-rose-600 rounded focus:ring-rose-500 cursor-pointer">
+                            <span class="text-sm font-black text-rose-700">🤝 Cấp quyền Quản lý Tuyển dụng cho nhân viên này</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -130,6 +136,14 @@
                         <label class="block text-xs font-bold text-rose-700 uppercase tracking-widest mb-2">⏳ Ngày kết thúc</label>
                         <input type="date" name="end_date" class="w-full p-4 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-colors font-bold text-base text-slate-600">
                     </div>
+                    <div>
+                        <label class="block text-xs font-bold text-rose-700 uppercase tracking-widest mb-2">📅 BĐ Thử việc</label>
+                        <input type="date" name="probation_start_date" class="w-full p-4 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-colors font-bold text-base text-slate-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-rose-700 uppercase tracking-widest mb-2">⏳ KT Thử việc</label>
+                        <input type="date" name="probation_end_date" class="w-full p-4 border border-rose-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none transition-colors font-bold text-base text-slate-600">
+                    </div>
                 </div>
             </div>
 
@@ -166,6 +180,9 @@
                     <div>
                         <h3 class="text-lg font-black text-indigo-800 m-0 leading-tight search-target mb-1"><%= staff.full_name %></h3>
                         <span class="text-xs font-black text-pink-500 uppercase tracking-widest search-target">@<%= staff.username %></span>
+                        <% if(staff.can_recruit == 1) { %>
+                            <span class="ml-2 px-2.5 py-1 bg-purple-100 text-purple-700 text-xs font-black uppercase tracking-widest rounded-md border border-purple-200 shadow-sm" title="Được quyền tuyển dụng">🤝 Tuyển dụng</span>
+                        <% } %>
                     </div>
                 </div>
                 
@@ -206,6 +223,8 @@
                         data-phone2="<%= staff.phone_2 %>" data-businesscode="<%= staff.business_code %>" data-email="<%= staff.email %>"
                         data-address="<%= staff.address %>" data-workarea="<%= staff.work_area %>" data-leaderid="<%= staff.leader_id %>"
                         data-startdate="<%= staff.start_date %>" data-enddate="<%= staff.end_date %>"
+                        data-canrecruit="<%= staff.can_recruit %>"
+                        data-probationstartdate="<%= staff.probation_start_date %>" data-probationenddate="<%= staff.probation_end_date %>"
                         class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-black uppercase tracking-widest transition-transform hover:scale-105 shadow-sm">
                         ✏️ Sửa
                     </button>
@@ -270,8 +289,10 @@
                         <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📧 Email</label><input type="email" name="email" id="edit_email" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
                         <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📍 Khu vực làm việc</label><input type="text" name="work_area" id="edit_work_area" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
                         <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">🏠 Địa chỉ</label><input type="text" name="address" id="edit_address" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold"></div>
-                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📅 Ngày bắt đầu</label><input type="date" name="start_date" id="edit_start_date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
-                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">⏳ Ngày kết thúc</label><input type="date" name="end_date" id="edit_end_date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📅 Bắt đầu hợp đồng</label><input type="date" name="start_date" id="edit_start_date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">⏳ Ngày kết thúc hợp đồng</label><input type="date" name="end_date" id="edit_end_date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">📅 Bắt đầu Thử việc</label><input type="date" name="probation_start_date" id="edit_probation_start_date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
+                        <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">⏳ Kết thúc Thử việc</label><input type="date" name="probation_end_date" id="edit_probation_end_date" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold text-slate-700 cursor-pointer"></div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">👨‍💼 Trực thuộc Trưởng nhóm</label>
                             <select name="leader_id" id="edit_leader_id" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-base font-semibold cursor-pointer">
@@ -280,6 +301,12 @@
                                     <option value="<%= leader.id %>"><%= leader.full_name %></option>
                                 <% }) %>
                             </select>
+                        </div>
+                        <div class="md:col-span-2 border-t border-slate-100 pt-4 mt-2">
+                            <label class="flex items-center gap-3 cursor-pointer p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 w-fit hover:bg-indigo-50 transition-colors">
+                                <input type="checkbox" name="can_recruit" id="edit_can_recruit" value="1" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer">
+                                <span class="text-sm font-black text-indigo-700">🤝 Cấp quyền Quản lý Tuyển dụng cho nhân viên này</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -409,6 +436,9 @@
             document.getElementById('edit_birthday').value = formatDateForInput(btn.getAttribute('data-birthday'));
             document.getElementById('edit_start_date').value = formatDateForInput(btn.getAttribute('data-startdate'));
             document.getElementById('edit_end_date').value = formatDateForInput(btn.getAttribute('data-enddate'));
+            document.getElementById('edit_probation_start_date').value = formatDateForInput(btn.getAttribute('data-probationstartdate'));
+            document.getElementById('edit_probation_end_date').value = formatDateForInput(btn.getAttribute('data-probationenddate'));
+            document.getElementById('edit_can_recruit').checked = btn.getAttribute('data-canrecruit') == '1';
             
             openModal('editModal');
         }
